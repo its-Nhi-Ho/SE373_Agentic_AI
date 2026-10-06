@@ -1,0 +1,22 @@
+=== TỔNG HỢP (1 seed x 8 kịch bản = 8 lượt / cấu hình) ===
+harness  mẫu           thành công        [CI95%]  khả thi  bất khả false-done  vi phạm   LLM  tool  token  chặn bàn giao
+BẬT      react             100.0% [67.6,100.0]   100.0%   100.0%       0.0%     0.0%   5.1   3.9   8903  0.50    37.5%
+BẬT      plan_execute       37.5% [13.7, 69.4]     0.0%   100.0%       0.0%     0.0%   2.8   1.5   3417  0.50   100.0%
+BẬT      hybrid            100.0% [67.6,100.0]   100.0%   100.0%       0.0%     0.0%   5.5   3.8   8453  0.38    37.5%
+TẮT      react              75.0% [40.9, 92.9]    80.0%    66.7%       0.0%    25.0%   4.4   3.4   6944  0.00     0.0%
+TẮT      plan_execute       37.5% [13.7, 69.4]    20.0%    66.7%      12.5%    37.5%   2.1   2.2   2285  0.00     0.0%
+TẮT      hybrid             50.0% [21.5, 78.5]    60.0%    33.3%      25.0%    12.5%   4.5   3.1   7466  0.00     0.0%
+
+Mã lý do bàn giao (harness BẬT): {'NO_ELIGIBLE_FLIGHT': 6, 'NEEDS_APPROVAL': 2, 'EXEC_FAILED': 4, 'TIMEOUT': 1, 'STRUCTURED_OUTPUT_INVALID': 1}
+Tổng: sửa output sai schema=11, LLM lỗi/thử lại=0, bị chặn lặp=0, bị chặn kiểm quyền=11
+
+=== THÀNH CÔNG THEO KỊCH BẢN (harness BẬT) ===
+kịch bản              react  plan_exec   hybrid
+happy_path             100%         0%     100%
+stops_allowed          100%         0%     100%
+sold_out_race          100%         0%     100%
+airline_pref           100%         0%     100%
+budget_too_low         100%       100%     100%
+no_flights             100%       100%     100%
+approval_denied        100%       100%     100%
+approval_granted       100%         0%     100%
