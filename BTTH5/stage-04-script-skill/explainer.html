@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stage 04: Script skill, giải thích tương tác</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+:root{
+  --bg0:#ffffff; --bg1:#f7f7f7; --bg2:#edebe9; --bg3:#d4cdc5; --bg4:#c5bdb3;
+  --fg:#1e3932; --red:#c8102e; --orange:#d97917; --yellow:#f2a900;
+  --green:#00704a; --green-dark:#006241; --brown:#6f4e37; --brown-light:#8b7355;
+  --grey:#666666; --green-soft:#e6f1ec; --yellow-soft:#fdf1d0; --red-soft:#fbe4e8;
+  --font:'IBM Plex Sans','Be Vietnam Pro','Segoe UI','Helvetica Neue',Arial,sans-serif;
+  --mono:'JetBrains Mono','SF Mono',Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html{font-size:18px;scroll-behavior:smooth}
+body{margin:0;background:var(--bg1);color:var(--fg);font-family:var(--font);line-height:1.6;font-size:1rem}
+code,pre,.mono{font-family:var(--mono)}
+code{background:var(--bg2);padding:.05em .35em;border-radius:6px;font-size:.88em}
+header.hero{background:var(--green-dark);color:#fff;padding:2.2rem 1.5rem 2.6rem}
+.wrap{max-width:1180px;margin:0 auto}
+.hero .kicker{font-size:.85rem;letter-spacing:.12em;text-transform:uppercase;color:#cfe8dc;font-weight:600}
+.hero h1{font-size:2.6rem;line-height:1.2;margin:.3rem 0 .6rem}
+.hero p{font-size:1.15rem;max-width:46em;margin:.3rem 0;color:#eaf5ef}
+.hero code{background:rgba(255,255,255,.18);color:#fff}
+.chips{display:flex;gap:.8rem;flex-wrap:wrap;margin-top:1.2rem}
+.chip{background:rgba(255,255,255,.14);border:2px solid rgba(255,255,255,.35);border-radius:14px;padding:.5rem 1rem;font-weight:600;font-size:1rem}
+.chip b{font-size:1.5rem;display:block;line-height:1.1}
+nav{position:sticky;top:0;z-index:20;background:var(--bg0);border-bottom:2px solid var(--bg3)}
+nav .wrap{display:flex;gap:.3rem;overflow-x:auto;padding:.4rem 1rem}
+nav a{white-space:nowrap;color:var(--fg);text-decoration:none;font-weight:600;font-size:.9rem;padding:.4rem .8rem;border-radius:10px}
+nav a:hover,nav a.on{background:var(--green);color:#fff}
+section{padding:2.6rem 1.5rem 1rem}
+section h2{font-size:2rem;line-height:1.25;margin:0 0 .4rem;color:var(--green-dark)}
+section h2 .n{display:inline-block;background:var(--green);color:#fff;border-radius:50%;width:2.2rem;height:2.2rem;text-align:center;line-height:2.2rem;font-size:1.1rem;margin-right:.6rem;vertical-align:middle}
+.lead{font-size:1.15rem;color:var(--brown);margin:.2rem 0 1.2rem;max-width:52em}
+.card{background:var(--bg0);border:2px solid var(--bg3);border-radius:18px;padding:1.2rem 1.4rem;margin:1rem 0}
+.card h3{margin:.1rem 0 .6rem;font-size:1.3rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+@media(max-width:900px){.grid2,.grid3{grid-template-columns:1fr}html{font-size:16px}}
+button{font:inherit;font-weight:600;cursor:pointer;border:2px solid var(--green);background:var(--bg0);color:var(--green);border-radius:12px;padding:.45rem 1rem;transition:.15s}
+button:hover:not(:disabled){background:var(--green-soft)}
+button.primary{background:var(--green);color:#fff}
+button.primary:hover:not(:disabled){background:var(--green-dark)}
+button.danger{border-color:var(--red);color:var(--red)}
+button.danger:hover:not(:disabled){background:var(--red-soft)}
+button:disabled{opacity:.4;cursor:not-allowed}
+button.sel,button.sel:hover:not(:disabled){background:var(--green);color:#fff}
+button.sel:hover:not(:disabled){background:var(--green-dark)}
+button.sel .tag.real{background:#fff;color:var(--green-dark)}
+button.sel code,.sel code{background:rgba(255,255,255,.22);color:#fff}
+.row{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center}
+.note{background:var(--yellow-soft);border-left:6px solid var(--yellow);border-radius:10px;padding:.7rem 1rem;margin:.8rem 0;font-size:.95rem}
+.note.ok{background:var(--green-soft);border-color:var(--green)}
+.note.bad{background:var(--red-soft);border-color:var(--red)}
+.tag{display:inline-block;font-size:.75rem;font-weight:700;padding:.1rem .55rem;border-radius:20px;background:var(--bg2);color:var(--brown);vertical-align:middle}
+.tag.real{background:var(--green);color:#fff}
+.tag.sim{background:var(--yellow);color:#3a2b00}
+
+/* Architecture */
+.arch{display:grid;grid-template-columns:repeat(5,1fr);gap:.6rem;align-items:stretch;margin:1rem 0}
+.node{background:var(--bg0);border:3px solid var(--bg3);border-radius:16px;padding:.7rem .6rem;text-align:center;cursor:pointer;position:relative;font-weight:600;font-size:.95rem;transition:.15s}
+.node small{display:block;font-weight:400;color:var(--grey);font-family:var(--mono);font-size:.72rem;margin-top:.2rem;word-break:break-all}
+.node:hover{border-color:var(--green)}
+.node.on{border-color:var(--green);background:var(--green-soft);box-shadow:0 4px 0 var(--green)}
+.node .ico{font-size:1.6rem;display:block}
+.node.dim{opacity:.5;border-style:dashed}
+.node.new{border-color:var(--orange)}
+.node.new.on{border-color:var(--orange);background:var(--yellow-soft);box-shadow:0 4px 0 var(--orange)}
+.newtag{position:absolute;top:-.65rem;right:.5rem;background:var(--orange);color:#fff;font-size:.7rem;border-radius:20px;padding:.05rem .55rem;font-weight:700}
+.arch .arrow{display:none}
+.archrow2{display:grid;grid-template-columns:repeat(5,1fr);gap:.6rem}
+.flowline{grid-column:1/-1;text-align:center;color:var(--grey);font-size:.9rem;margin:.1rem 0}
+#archDetail{min-height:7rem}
+#archDetail h4{margin:0 0 .3rem;font-size:1.2rem;color:var(--green-dark)}
+@media(max-width:900px){.arch,.archrow2{grid-template-columns:1fr 1fr}}
+
+/* Simulator */
+.stepper{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;margin:.8rem 0}
+.timeline{display:flex;gap:.4rem;margin:.8rem 0;flex-wrap:wrap}
+.tl{flex:1 1 170px;min-width:170px;overflow-wrap:anywhere;border:3px solid var(--bg3);background:var(--bg0);border-radius:14px;padding:.5rem .7rem;font-size:.85rem;cursor:pointer}
+.tl b{display:block;font-family:var(--mono);font-size:.85rem}
+.tl.done{border-color:var(--green);background:var(--green-soft)}
+.tl.cur{border-color:var(--orange);background:var(--yellow-soft);box-shadow:0 4px 0 var(--orange)}
+.badge{display:inline-block;padding:.2rem .9rem;border-radius:20px;font-weight:700;font-size:1rem;color:#fff;background:var(--grey)}
+.badge.ready{background:var(--grey)}.badge.model{background:var(--orange)}.badge.tool{background:var(--brown)}.badge.done{background:var(--green)}.badge.err{background:var(--red)}
+.counters{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin:.7rem 0}
+.counter{background:var(--bg1);border:2px solid var(--bg3);border-radius:12px;padding:.4rem .5rem;text-align:center;font-size:.78rem;line-height:1.25;color:var(--grey)}
+.counter b{display:block;font-size:1.8rem;color:var(--fg);line-height:1.1}
+.counter.hl{border-color:var(--green);background:var(--green-soft)}
+.counter.zero b{color:var(--red)}
+.chat{display:flex;flex-direction:column;gap:.5rem;margin:.5rem 0}
+.msg{padding:.6rem .9rem;border-radius:14px;max-width:92%;font-size:.95rem;white-space:pre-wrap}
+.msg.u{background:var(--green);color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
+.msg.a{background:var(--bg2);align-self:flex-start;border-bottom-left-radius:4px}
+.msg.pending{opacity:.55;font-style:italic}
+pre{background:var(--bg2);border-radius:12px;padding:.7rem .9rem;overflow:auto;font-size:.8rem;line-height:1.5;margin:.4rem 0;white-space:pre-wrap;word-break:break-word}
+.evlog{font-family:var(--mono);font-size:.8rem}
+.ev{display:flex;gap:.6rem;padding:.3rem .5rem;border-bottom:1px solid var(--bg2);align-items:baseline;flex-wrap:wrap}
+.ev:last-child{border:0}
+.ev .s{background:var(--green);color:#fff;border-radius:6px;padding:0 .4rem;font-weight:600}
+.ev.new{background:var(--yellow-soft)}
+details{margin:.4rem 0}
+summary{cursor:pointer;font-weight:600;padding:.2rem 0}
+.empty{color:var(--red);font-weight:700}
+.panelhead{display:flex;justify-content:space-between;align-items:center;gap:.5rem;flex-wrap:wrap}
+.invisible-hint{color:var(--grey);font-size:.9rem}
+.stepbox{border:2px solid var(--bg3);border-radius:12px;padding:.5rem .8rem;margin:.4rem 0;font-size:.9rem;background:var(--bg0)}
+.stepbox .h{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;font-weight:600}
+.pill{display:inline-block;border-radius:20px;padding:0 .6rem;font-size:.75rem;font-weight:700;color:#fff;background:var(--green)}
+.pill.warn{background:var(--orange)}.pill.err{background:var(--red)}.pill.gray{background:var(--grey)}
+
+/* context bar */
+.stack{display:flex;height:3.2rem;border-radius:12px;overflow:hidden;border:2px solid var(--bg3);margin:.6rem 0}
+.stack div{display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:.8rem;transition:width .3s;overflow:hidden;white-space:nowrap}
+.legend{display:flex;gap:1rem;flex-wrap:wrap;font-size:.9rem}
+.legend i{display:inline-block;width:1rem;height:1rem;border-radius:4px;margin-right:.35rem;vertical-align:-2px}
+.sp{background:var(--green)}.cp{background:var(--orange)}.um{background:var(--brown)}.hs{background:var(--brown-light)}.sk{background:#3d6b8a}.ct{background:var(--red)}.tm{background:#7a6a9a}
+.hl-base{background:#cfe8dc}.hl-cap{background:#fbe2bf}.hl-sk{background:#cfe0f0}.hl-cat{background:#f6cfd6}
+.prompt-view{font-family:var(--mono);font-size:.82rem;white-space:pre-wrap;background:var(--bg0);border:2px solid var(--bg3);border-radius:12px;padding:.8rem 1rem;line-height:1.55}
+
+/* history */
+.hist{display:flex;gap:.3rem;flex-wrap:wrap;margin:.6rem 0;min-height:3rem}
+.hm{border-radius:10px;padding:.25rem .6rem;font-size:.8rem;font-weight:600;color:#fff}
+.hm.s{background:var(--green)}.hm.u{background:var(--brown)}.hm.a{background:var(--brown-light)}.hm.t{background:#3d6b8a}
+.hm.gone{background:var(--red-soft);color:var(--red);text-decoration:line-through;border:2px dashed var(--red)}
+.bars{display:flex;align-items:flex-end;gap:.5rem;height:150px;margin:.6rem 0 1.8rem;border-bottom:3px solid var(--bg3);padding:0 .3rem}
+.bar{flex:1;background:var(--green);border-radius:8px 8px 0 0;position:relative;min-width:30px;transition:height .3s;max-width:90px}
+.bar span{position:absolute;top:-1.4rem;left:0;right:0;text-align:center;font-size:.8rem;font-weight:700;color:var(--fg);white-space:nowrap}
+.bar em{position:absolute;bottom:-1.5rem;left:0;right:0;text-align:center;font-size:.72rem;font-style:normal;color:var(--grey);white-space:nowrap}
+.bar.fail{background:var(--red)}
+.bar.cur{background:var(--orange)}
+
+/* loop */
+.slots{display:grid;grid-template-columns:repeat(8,1fr);gap:.4rem;margin:.8rem 0}
+.slot{border:3px solid var(--bg3);border-radius:12px;padding:.4rem .2rem;text-align:center;font-size:.8rem;background:var(--bg0);min-height:4.2rem}
+.slot b{display:block;font-size:1.1rem}
+.slot.m{border-color:var(--green);background:var(--green-soft)}
+.slot.t{border-color:var(--brown-light);background:var(--bg2)}
+.slot.cut{border-color:var(--red);background:var(--red-soft);color:var(--red)}
+.cells{display:grid;grid-template-columns:repeat(20,1fr);gap:.25rem;margin:.6rem 0}
+.cell{height:1.3rem;border-radius:5px;border:2px solid var(--bg3);background:var(--bg0)}
+.cell.f{background:var(--brown-light);border-color:var(--brown-light)}
+.cell.over{background:var(--red);border-color:var(--red)}
+input[type=range]{width:100%;accent-color:var(--green);height:2rem}
+.switch{display:inline-flex;border:2px solid var(--green);border-radius:12px;overflow:hidden}
+.switch button{border:0;border-radius:0}
+
+/* trace */
+.jl{font-family:var(--mono);font-size:.78rem;background:var(--bg0);border:2px solid var(--bg3);border-radius:12px;padding:.5rem .8rem;margin:.4rem 0;cursor:pointer;word-break:break-all;line-height:1.55}
+.jl:hover{border-color:var(--green)}
+.jl.on{border-color:var(--green);background:var(--green-soft)}
+.jl .k{color:var(--green-dark);font-weight:600}
+.jl .t{color:var(--red);font-weight:600}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{border-bottom:2px solid var(--bg2);padding:.5rem .6rem;text-align:left;vertical-align:top}
+th{color:var(--green-dark);background:var(--bg1)}
+.toggle{display:flex;align-items:center;gap:.6rem;font-weight:600;cursor:pointer;margin:.3rem 0}
+.toggle input{width:1.3rem;height:1.3rem;accent-color:var(--green)}
+.chatinput{display:flex;gap:.5rem;margin-top:.6rem}
+.chatinput input,.fin{flex:1;font:inherit;padding:.6rem .9rem;border-radius:12px;border:2px solid var(--bg3);background:var(--bg0)}
+.chatinput input:disabled{background:var(--bg2);cursor:not-allowed}
+textarea{width:100%;font-family:var(--mono);font-size:.8rem;line-height:1.5;border:2px solid var(--bg3);border-radius:12px;padding:.6rem .8rem;min-height:11rem;background:var(--bg0);color:var(--fg)}
+footer{padding:2rem 1.5rem 3rem;color:var(--grey);font-size:.9rem}
+
+/* stage 04 additions */
+.tree .tag{line-height:1.3;margin-left:.5rem;padding:.05rem .6rem}
+.tree{font-family:var(--mono);font-size:.82rem}
+.tree .dir{font-weight:600;color:var(--brown);padding:.15rem 0}
+.tree button{display:block;width:100%;text-align:left;border-width:2px;border-color:transparent;font-family:var(--mono);font-size:.82rem;font-weight:500;padding:.2rem .5rem;border-radius:8px}
+.tree button.sel{border-color:var(--green)}
+.tree button .tag{margin-left:.3rem}
+.caps{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin:.6rem 0}
+.cap{border:2px solid var(--bg3);border-radius:12px;padding:.4rem .6rem;font-size:.82rem}
+.cap b{display:block;font-family:var(--mono)}
+.cap.y{border-color:var(--green);background:var(--green-soft)}
+.cap.n{border-color:var(--red);background:var(--red-soft)}
+.cap.w{border-color:var(--yellow);background:var(--yellow-soft)}
+.c-ok{background:var(--green-soft)}.c-no{background:var(--red-soft)}.c-warn{background:var(--yellow-soft)}
+tr.pick{cursor:pointer}
+tr.pick:hover td{background:var(--bg1)}
+tr.pick.on td{outline:0;background:var(--green-soft)}
+.diag{border-left:6px solid var(--yellow);background:var(--yellow-soft);border-radius:8px;padding:.3rem .7rem;margin:.3rem 0;font-size:.88rem}
+.diag.e{border-color:var(--red);background:var(--red-soft)}
+.diag.ok{border-color:var(--green);background:var(--green-soft)}
+.fin{max-width:100%}
+.layer{border:2px solid var(--bg3);border-radius:14px;padding:.7rem .9rem;background:var(--bg0)}
+.layer h4{margin:0 0 .3rem;font-size:1.05rem;color:var(--green-dark)}
+.layer.l1{border-color:var(--green)}.layer.l2{border-color:var(--orange)}.layer.l3{border-color:#3d6b8a}
+.mrow{display:grid;grid-template-columns:2.2rem 6.5rem 1fr 4.5rem;gap:.5rem;align-items:baseline;font-size:.82rem;padding:.25rem .4rem;border-bottom:1px solid var(--bg2)}
+.mrow.new{background:var(--yellow-soft)}
+.mrow.skill{background:#dfeaf5}
+.mrow .m{font-family:var(--mono)}
+@media(max-width:900px){.grid2,.grid3{grid-template-columns:minmax(0,1fr)}table{display:block;overflow-x:auto}code{overflow-wrap:anywhere}.mrow{grid-template-columns:2rem 5rem 1fr 4rem}.cells{grid-template-columns:repeat(10,1fr)}.slots{grid-template-columns:repeat(4,1fr)}.caps{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header class="hero"><div class="wrap">
+  <div class="kicker">Agent Tools &amp; Skills Lab</div>
+  <h1>Stage 04: Script skill</h1>
+  <p>Stage 04 giữ nguyên ba tool của Stage 03 (<code>read_file</code>, <code>write_file</code>, <code>bash</code>) và không đổi code agent. Điều mới là skill <code>csv-quality</code> có thư mục <code>scripts/</code> chứa <code>check_csv.py</code>. Agent đọc <code>SKILL.md</code> để biết lệnh, chạy script qua <code>bash</code>, rồi ghi báo cáo vào <code>output/</code>.</p>
+  <p>Trang này giải thích từng bước bằng các phần tương tác bên dưới.</p>
+  <div class="chips">
+    <div class="chip"><b>3</b>tool</div>
+    <div class="chip"><b>2</b>skill, 1 skill có script</div>
+    <div class="chip"><b>10</b>giây timeout của bash</div>
+    <div class="chip"><b>8</b>model call tối đa mỗi lượt</div>
+    <div class="chip"><b>20</b>tool call tối đa mỗi lượt</div>
+  </div>
+</div></header>
+
+<nav><div class="wrap" id="nav">
+  <a href="#s1">Kiến trúc</a><a href="#s2">Workspace</a><a href="#s3">Catalog</a><a href="#s4">Một lượt chạy</a><a href="#s5">Output</a>
+  <a href="#s6">Context</a><a href="#s7">History</a><a href="#s8">Bảo mật</a><a href="#s9">Trace</a><a href="#s10">Cấu hình</a>
+</div></nav>
+
+<!-- 1 -->
+<section id="s1"><div class="wrap">
+  <h2><span class="n">1</span>Kiến trúc</h2>
+  <p class="lead">Bấm vào từng khối để xem file tương ứng và nhiệm vụ của nó. Khối viền cam là phần mới của Stage 04. Các khối còn lại giống Stage 03.</p>
+  <div class="arch" id="arch"></div>
+  <div class="card" id="archDetail"></div>
+  <div class="card">
+    <h3>So sánh với Stage 03 <span class="tag real">dữ liệu thật</span></h3>
+    <p class="invisible-hint">Kết quả so sánh hai thư mục project bằng <code>diff</code>.</p>
+    <table>
+      <tr><th>Thành phần</th><th>Stage 03</th><th>Stage 04</th></tr>
+      <tr><td><code>agent.py</code>, <code>prompts.py</code>, <code>observer.py</code>, <code>skill_catalog.py</code>, <code>app.py</code>, <code>trace.py</code>, <code>tools/*.py</code></td><td colspan="2">Giống nhau, chỉ khác dòng docstring đầu của <code>agent.py</code> (ghi số stage).</td></tr>
+      <tr><td><code>config.py</code></td><td><code>APP_TITLE = "Stage 03: Bash"</code></td><td><code>APP_TITLE = "Stage 04: Script skill"</code>. <code>CAPABILITY_TEXT</code> nhắc đến skill có script.</td></tr>
+      <tr><td>Skill trong <code>workspace/skills/</code></td><td><code>weekly-report</code></td><td><code>weekly-report</code> và <code>csv-quality</code></td></tr>
+      <tr><td>Script trong skill</td><td>Không có</td><td><code>csv-quality/scripts/check_csv.py</code></td></tr>
+      <tr><td>Dữ liệu trong <code>workspace/data/</code></td><td><code>weekly_notes.md</code></td><td>Thêm <code>tasks.csv</code> (6 dòng dữ liệu, có sẵn lỗi dữ liệu để bài kiểm tra có kết quả)</td></tr>
+    </table>
+    <div class="note ok">Skill có script không cần cơ chế mới. Script chỉ là một file trong thư mục skill. Agent chạy nó bằng tool <code>bash</code> đã có từ Stage 03, theo lệnh ghi trong <code>SKILL.md</code>.</div>
+  </div>
+</div></section>
+
+<!-- 2 -->
+<section id="s2"><div class="wrap">
+  <h2><span class="n">2</span>Workspace</h2>
+  <p class="lead">Mọi file của agent nằm trong thư mục <code>workspace/</code>. Bấm vào một file để xem nội dung thật và cách agent dùng file đó.</p>
+  <div class="grid2">
+    <div class="card"><h3>Cây thư mục</h3><div class="tree" id="tree"></div></div>
+    <div class="card" id="fileView"></div>
+  </div>
+  <div class="card">
+    <h3>Ba lớp của một skill</h3>
+    <div class="grid3">
+      <div class="layer l1"><h4>1. Metadata</h4><code>name</code>, <code>description</code>, <code>location</code>. Luôn nằm trong system prompt (catalog).</div>
+      <div class="layer l2"><h4>2. Nội dung SKILL.md</h4>Chỉ vào context khi model gọi <code>read_file</code> thành công trên file này.</div>
+      <div class="layer l3"><h4>3. Tài nguyên</h4><code>references/</code> đọc bằng <code>read_file</code>. <code>scripts/</code> chạy bằng <code>bash</code>. Cả hai chỉ dùng khi task cần.</div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Chi phí context của từng phần <span class="tag real">dữ liệu thật</span></h3>
+    <p class="invisible-hint">Chọn các phần đã xảy ra trong hội thoại. Số ký tự lấy từ file thật và kết quả chạy thật của script. Đây là ký tự, không phải token.</p>
+    <label class="toggle"><input type="checkbox" id="zCat" checked disabled> System prompt có catalog (luôn có)</label>
+    <label class="toggle"><input type="checkbox" id="zSkill"> Model đọc <code>skills/csv-quality/SKILL.md</code> bằng <code>read_file</code></label>
+    <label class="toggle"><input type="checkbox" id="zRun"> Model chạy script bằng <code>bash</code> (chỉ stdout vào context)</label>
+    <label class="toggle"><input type="checkbox" id="zTpl"> Model đọc <code>references/report-template.md</code></label>
+    <label class="toggle"><input type="checkbox" id="zSrc"> Model đọc source <code>scripts/check_csv.py</code> bằng <code>read_file</code></label>
+    <div class="stack" id="zStack"></div>
+    <div class="legend"><span><i class="sp"></i>system prompt</span><span><i class="sk"></i>SKILL.md</span><span><i class="ct"></i>stdout của script</span><span><i class="cp"></i>template</span><span><i class="tm"></i>source script</span></div>
+    <p class="mono" id="zNums" style="font-size:.85rem"></p>
+    <div class="note" id="zNote"></div>
+  </div>
+  <div class="card">
+    <h3>Khởi tạo và khôi phục workspace <span class="tag real">dữ liệu thật</span></h3>
+    <p class="invisible-hint">Hàm <code>ensure_workspace()</code> chạy khi app khởi động. Hàm <code>reset_workspace()</code> chạy bằng <code>uv run python reset_workspace.py</code>. Chọn trạng thái của thư mục <code>workspace/</code> để xem hai hàm xử lý thế nào.</p>
+    <div class="grid2">
+      <div>
+        <label class="toggle"><input type="checkbox" id="wExists" checked> Thư mục workspace tồn tại</label>
+        <label class="toggle"><input type="checkbox" id="wData" checked> Trong workspace có file hoặc thư mục</label>
+        <label class="toggle"><input type="checkbox" id="wMarker" checked> Có file <code>.lab-workspace</code> với nội dung đúng</label>
+        <label class="toggle"><input type="checkbox" id="wLink"> Workspace là symlink</label>
+      </div>
+      <div>
+        <div class="note" id="wEnsure"></div>
+        <div class="note" id="wReset"></div>
+      </div>
+    </div>
+  </div>
+</div></section>
+
+<!-- 3 -->
+<section id="s3"><div class="wrap">
+  <h2><span class="n">3</span>Catalog</h2>
+  <p class="lead">Khi khởi tạo agent, <code>scan_skills()</code> quét <code>workspace/skills/*/SKILL.md</code> và chỉ lấy <code>name</code>, <code>description</code>, <code>location</code> đưa vào system prompt. Chọn một bộ thư mục mẫu, sửa nội dung SKILL.md và xem diagnostic cùng khối <code>&lt;available_skills&gt;</code> thay đổi.</p>
+  <div class="note">Phần quét dưới đây là bản JavaScript mô phỏng <code>scan_skills()</code>. Thông điệp diagnostic và thứ tự kiểm tra lấy từ <code>skill_catalog.py</code>. Phần đọc YAML chỉ hỗ trợ dạng <code>key: value</code> đơn giản, không phải PyYAML. <span class="tag sim">minh hoạ</span></div>
+  <div class="row" id="catPresets"></div>
+  <div class="grid2">
+    <div class="card">
+      <h3>Thư mục <code>workspace/skills/</code></h3>
+      <div class="row" id="catTabs"></div>
+      <div id="catEditor" style="margin-top:.6rem"></div>
+      <div class="row" style="margin-top:.6rem"><button id="catAdd">Thêm thư mục skill</button><button class="danger" id="catDel">Xóa thư mục đang chọn</button></div>
+    </div>
+    <div class="card">
+      <h3>Kết quả quét</h3>
+      <div id="catDiag"></div>
+      <h4 style="margin:.8rem 0 .2rem">Khối đưa vào system prompt</h4>
+      <pre id="catBlock"></pre>
+      <p class="mono" id="catNums" style="font-size:.85rem"></p>
+    </div>
+  </div>
+</div></section>
+
+<!-- 4 -->
+<section id="s4"><div class="wrap">
+  <h2><span class="n">4</span>Một lượt chạy</h2>
+  <p class="lead">Chọn một prompt thử trong README rồi bấm <b>Bước tiếp</b>. Mỗi bước là một event của observer. Cột bên phải mô phỏng panel State &amp; Context trong app Streamlit.</p>
+  <div class="row" id="presets"></div>
+  <div class="note" id="simNote"></div>
+  <div class="stepper">
+    <button id="bPrev">Lùi</button>
+    <button id="bNext" class="primary">Bước tiếp</button>
+    <button id="bAuto">Tự chạy</button>
+    <button id="bReset" class="danger">Làm lại</button>
+  </div>
+  <div class="timeline" id="timeline"></div>
+  <div class="note ok" id="stepNote"></div>
+  <div class="grid2">
+    <div class="card">
+      <h3>Cột chat</h3>
+      <div class="chat" id="simChat"></div>
+      <details open><summary>Các bước thực hiện (<span id="sumModel">0</span> model call, <span id="sumTool">0</span> tool call)</summary>
+        <div id="simSteps" class="invisible-hint">Chưa có bước nào.</div>
+      </details>
+    </div>
+    <div class="card">
+      <div class="panelhead"><h3>State &amp; Context</h3><span class="badge ready" id="simBadge">Sẵn sàng</span></div>
+      <div class="counters">
+        <div class="counter" id="cTurn">Lượt chat<b>0</b></div>
+        <div class="counter" id="cModel">Model call<b>0</b></div>
+        <div class="counter" id="cSeq">Bước sự kiện<b>0</b></div>
+        <div class="counter" id="cTool">Tool calls<b>0</b></div>
+      </div>
+      <details><summary>Tools được cấp (3)</summary><div id="simTools"></div></details>
+      <details open><summary>Skills trong catalog (2)</summary><div id="simSkills"></div></details>
+      <details open><summary>Skill content đã vào history (<span id="invSkN">0</span>)</summary><div id="simInvSk"></div></details>
+      <details open><summary>Tài nguyên đã đọc (<span id="invRsN">0</span>)</summary><div id="simInvRs"></div></details>
+      <details open><summary>Message history hiện tại (<span id="msgN">0</span>)</summary><div id="simMsgs"></div></details>
+      <details><summary>Event log (<span id="logN">0</span>)</summary><div id="simLog" class="evlog"></div></details>
+      <details><summary>Context gửi model (snapshot mới nhất)</summary><div id="simSnap" class="invisible-hint">Chưa có event model_request.</div></details>
+      <details open><summary>File trong workspace/output/</summary><div id="simFiles"></div></details>
+    </div>
+  </div>
+</div></section>
+
+<!-- 5 -->
+<section id="s5"><div class="wrap">
+  <h2><span class="n">5</span>Output</h2>
+  <p class="lead">Một lượt chạy script skill tạo ra nhiều loại artifact. Mỗi loại nằm ở một nơi khác nhau và chỉ một số loại vào context của model. Bấm vào từng artifact để xem chi tiết.</p>
+  <div class="grid2">
+    <div class="card"><div id="artList"></div></div>
+    <div class="card" id="artDetail"></div>
+  </div>
+  <div class="card">
+    <h3>Thử với file output</h3>
+    <p class="invisible-hint">Báo cáo bên dưới là nội dung minh hoạ, viết theo template của skill với số liệu thật từ script. Hãy thử xem file trên UI và so sánh với việc agent đọc file bằng <code>read_file</code>.</p>
+    <div class="row">
+      <button class="primary" id="aWrite">Agent ghi bằng write_file</button>
+      <button id="aView">Xem file trên UI</button>
+      <button id="aRead">Agent đọc bằng read_file</button>
+      <button class="danger" id="aReset">Reset workspace</button>
+    </div>
+    <div class="counters" style="grid-template-columns:repeat(3,1fr)">
+      <div class="counter" id="aFile">File trên đĩa<b>0</b></div>
+      <div class="counter hl" id="aHist">Message mới trong history<b>0</b></div>
+      <div class="counter" id="aBytes">Số byte của file<b>0</b></div>
+    </div>
+    <div class="note" id="aNote">Bấm một nút để bắt đầu.</div>
+    <div id="aOut"></div>
+  </div>
+</div></section>
+
+<!-- 6 -->
+<section id="s6"><div class="wrap">
+  <h2><span class="n">6</span>Context gửi cho model</h2>
+  <p class="lead">Snapshot được chụp ngay trước mỗi model call. Bên dưới là sáu snapshot của một hội thoại: lượt 1 (kiểm tra CSV, 5 model call) và lượt 2 (hỏi tiếp, 1 model call). Chọn một snapshot để xem system prompt, message và tool.</p>
+  <div class="card">
+    <div class="row" id="ctxPick"></div>
+    <div class="bars" id="ctxBars"></div>
+    <div class="note" id="ctxSummary"></div>
+    <div class="stack" id="ctxStack"></div>
+    <div class="legend"><span><i class="sp"></i>BASE</span><span><i class="cp"></i>CAPABILITY</span><span><i class="sk"></i>SKILLS</span><span><i class="ct"></i>catalog</span><span><i class="um"></i>messages</span></div>
+    <details style="margin-top:.6rem"><summary>System prompt (có tô màu từng đoạn)</summary><div class="prompt-view" id="ctxPrompt"></div></details>
+    <h4 style="margin:.8rem 0 .2rem">Messages trong request</h4>
+    <div id="ctxMsgs"></div>
+    <h4 style="margin:.8rem 0 .2rem">Tools trong request</h4>
+    <div id="ctxTools"></div>
+    <div class="note bad"><b>Đây là context ở lớp LangChain.</b> Snapshot không phải payload mà provider nhận, không phải kết quả của tokenizer. App cũng không ước lượng token, nên số ký tự chỉ để so sánh tương đối. <span class="tag real">dữ liệu thật</span> theo README.</div>
+  </div>
+</div></section>
+
+<!-- 7 -->
+<section id="s7"><div class="wrap">
+  <h2><span class="n">7</span>History</h2>
+  <p class="lead">Model không tự nhớ gì giữa các lượt. App gửi lại toàn bộ history ở mỗi lượt, gồm cả tool call và tool result. Vì vậy nội dung SKILL.md và kết quả script ở lại trong history cho các lượt sau. Bấm các nút để xem history lớn dần.</p>
+  <div class="card">
+    <div class="row">
+      <button class="primary" id="hRun">Lượt kiểm tra CSV (thêm 10 message)</button>
+      <button id="hAsk">Lượt hỏi tiếp, không cần tool (thêm 2 message)</button>
+      <button class="danger" id="hFail">Mô phỏng lượt bị lỗi</button>
+      <button id="hNew">Cuộc trò chuyện mới</button>
+    </div>
+    <div class="counters" style="grid-template-columns:repeat(4,1fr)">
+      <div class="counter">Số lượt đã chạy<b id="hTurn">0</b></div>
+      <div class="counter hl">Message gửi ở lượt kế tiếp<b id="hMsgs">1</b></div>
+      <div class="counter">Skill content trong history<b id="hSkill">0</b></div>
+      <div class="counter">Ký tự trong history<b id="hChars">0</b></div>
+    </div>
+    <div class="legend"><span><i class="sp"></i>system</span><span><i class="um"></i>user</span><span><i class="hs"></i>assistant</span><span><i class="sk"></i>tool result</span></div>
+    <div class="hist" id="hist"></div>
+    <div class="bars" id="hbars"></div>
+    <div class="note" id="hNote">Bấm "Lượt kiểm tra CSV" để bắt đầu.</div>
+  </div>
+</div></section>
+
+<!-- 8 -->
+<section id="s8"><div class="wrap">
+  <h2><span class="n">8</span>Bảo mật</h2>
+  <p class="lead">Code của stage này giới hạn tool theo ba cách: kiểm tra đường dẫn (<code>read_file</code>, <code>write_file</code>), giới hạn tiến trình (<code>bash</code>) và giới hạn số lần gọi (middleware). <b>Bash không phải sandbox.</b> Các phần dưới cho thấy chỗ nào bị chặn và chỗ nào không.</p>
+
+  <div class="card">
+    <h3>Kiểm tra đường dẫn của read_file và write_file <span class="tag real">dữ liệu thật</span></h3>
+    <p class="invisible-hint">Hàm <code>_resolve()</code>, <code>_read()</code>, <code>_write()</code> trong <code>tools/files.py</code>, viết lại bằng JavaScript trên một workspace giả lập (các file lấy từ cây ở phần 2, thêm hai file giả lập để thử giới hạn). Chọn tool, gõ đường dẫn hoặc bấm một mẫu.</p>
+    <div class="row">
+      <div class="switch" id="pTool"><button class="sel" data-t="read">read_file</button><button data-t="write">write_file</button></div>
+      <input class="fin" id="pInput" value="../.env" style="min-width:16rem">
+      <button class="primary" id="pRun">Chạy</button>
+    </div>
+    <div class="row" id="pSamples" style="margin-top:.5rem"></div>
+    <div class="note" id="pNote" style="margin-top:.8rem"></div>
+    <pre id="pOut"></pre>
+  </div>
+
+  <div class="card">
+    <h3>Tool bash <span class="tag real">dữ liệu thật</span></h3>
+    <p class="invisible-hint">Chọn một lệnh để xem kết quả mà tool trả về cho model. Ba lệnh chạy script có kết quả thu từ lần chạy thật <code>check_csv.py</code> trên workspace của stage này. Các lệnh còn lại dựng theo logic của <code>_run_bash()</code>, đánh dấu minh hoạ.</p>
+    <div class="row" id="bCases"></div>
+    <div class="note" id="bNote" style="margin-top:.8rem"></div>
+    <div class="grid2">
+      <div><b>Model gửi</b><pre id="bCmd"></pre></div>
+      <div><b>Tool trả về (JSON)</b><pre id="bRes"></pre></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Cùng một thao tác, ba tool</h3>
+    <p class="invisible-hint">Bấm một hàng để xem giải thích. Bảng này cho thấy kiểm tra đường dẫn chỉ áp dụng cho <code>read_file</code> và <code>write_file</code>.</p>
+    <table id="matrix"></table>
+    <div class="note" id="mxNote" style="margin-top:.8rem"></div>
+  </div>
+
+  <div class="card">
+    <h3>Giới hạn thực thi</h3>
+    <p class="invisible-hint">Kéo thanh trượt để xem một lượt chạy tiêu thụ model call và tool call thế nào so với hai giới hạn.</p>
+    <div class="row"><button id="lScript">Đặt theo lượt script skill (4 vòng, mỗi vòng 1 tool)</button></div>
+    <label>Số vòng liên tiếp model yêu cầu tool: <b id="lrN">4</b></label>
+    <input type="range" id="lRounds" min="0" max="10" value="4">
+    <label>Số tool call mỗi vòng: <b id="lpN">1</b></label>
+    <input type="range" id="lPer" min="1" max="5" value="1">
+    <div class="slots" id="slots"></div>
+    <div class="cells" id="cells"></div>
+    <div class="note" id="lNote"></div>
+    <table>
+      <tr><th>Giới hạn</th><th>Giá trị</th><th>Nguồn</th><th>Ý nghĩa</th></tr>
+      <tr><td><code>MODEL_CALL_LIMIT</code></td><td>8</td><td><code>config.py</code></td><td><code>ModelCallLimitMiddleware(run_limit=8, exit_behavior="end")</code>: vượt giới hạn thì lượt kết thúc.</td></tr>
+      <tr><td><code>TOOL_CALL_LIMIT</code></td><td>20</td><td><code>config.py</code></td><td><code>ToolCallLimitMiddleware(run_limit=20)</code>. Project không đặt <code>exit_behavior</code>, nên hành vi khi vượt là mặc định của LangChain (code project không nêu).</td></tr>
+      <tr><td><code>RECURSION_LIMIT</code></td><td>50</td><td><code>config.py</code></td><td>Số bước tối đa của LangGraph. Không phải số tool call.</td></tr>
+      <tr><td>Timeout của bash</td><td>10 giây</td><td><code>tools/bash.py</code></td><td>Quá hạn thì kill cả process group bằng SIGKILL.</td></tr>
+      <tr><td><code>MAX_OUTPUT_CHARS</code></td><td>20.000</td><td><code>tools/bash.py</code></td><td>stdout và stderr mỗi luồng bị cắt ở mức này.</td></tr>
+      <tr><td><code>MAX_READ_BYTES</code></td><td>200.000</td><td><code>tools/files.py</code></td><td><code>read_file</code> từ chối file lớn hơn, không đọc một phần.</td></tr>
+      <tr><td>Tên và mô tả skill</td><td>64 và 1024 ký tự</td><td><code>skill_catalog.py</code></td><td>Vượt thì chỉ có cảnh báo trong diagnostic, skill vẫn vào catalog.</td></tr>
+    </table>
+  </div>
+
+  <div class="note bad"><b>Môi trường chạy.</b> Theo README: chỉ chạy trong môi trường lab với dữ liệu giả, không mount thư mục cá nhân hoặc secrets. Cần bash trên POSIX (Windows dùng WSL2). App chạy local, một người dùng cho mỗi project, không có xác thực.</div>
+</div></section>
+
+<!-- 9 -->
+<section id="s9"><div class="wrap">
+  <h2><span class="n">9</span>Trace JSONL</h2>
+  <p class="lead">Mỗi lượt chat ghi một file trong <code>traces/</code> theo mẫu <code>&lt;thời gian&gt;_&lt;conversation&gt;_turnNN_&lt;run&gt;.jsonl</code>. Mỗi dòng là một event. Thư mục <code>traces/</code> của stage này hiện chỉ có <code>.gitkeep</code>, nên các dòng bên dưới là <span class="tag sim">minh hoạ</span>: tên trường lấy từ <code>observer.py</code>, dữ liệu dựng từ prompt thử trong README và kết quả chạy thật của script.</p>
+  <div class="row" id="trPick"></div>
+  <div class="grid2">
+    <div id="jls"></div>
+    <div class="card" id="jlDetail"></div>
+  </div>
+</div></section>
+
+<!-- 10 -->
+<section id="s10"><div class="wrap">
+  <h2><span class="n">10</span>Cấu hình</h2>
+  <p class="lead">App đọc cấu hình từ file <code>.env</code>. Bật hoặc tắt từng biến để xem giao diện phản ứng thế nào khi thiếu cấu hình.</p>
+  <div class="grid2">
+    <div class="card">
+      <label class="toggle"><input type="checkbox" id="eKey" checked> <code>OPENROUTER_API_KEY</code> (bắt buộc)</label>
+      <label class="toggle"><input type="checkbox" id="eModel" checked> <code>MODEL_NAME</code> (bắt buộc)</label>
+      <label class="toggle"><input type="checkbox" id="eBase"> <code>OPENROUTER_BASE_URL</code> (override tùy chọn; mặc định OpenRouter)</label>
+      <div class="note" id="eNote"></div>
+      <div class="chatinput"><input id="eInput" placeholder="Nhập yêu cầu…"><button class="primary" id="eSend">Gửi</button></div>
+    </div>
+    <div class="card">
+      <h3>Hàm <code>build_model()</code> tạo model như sau</h3>
+      <pre id="ePre"></pre>
+      <p class="invisible-hint">App không truyền <code>temperature</code> hay tham số nào khác. API key không được ghi vào trace hay log, và không được truyền vào môi trường của tiến trình <code>bash</code>. Endpoint cần hỗ trợ native tool calling.</p>
+    </div>
+  </div>
+</div></section>
+
+<footer><div class="wrap">Nguồn: <code>agent.py</code>, <code>config.py</code>, <code>prompts.py</code>, <code>skill_catalog.py</code>, <code>observer.py</code>, <code>trace.py</code>, <code>paths.py</code>, <code>reset_workspace.py</code>, <code>tools/bash.py</code>, <code>tools/files.py</code>, <code>tests/</code>, <code>README.md</code> và các file trong <code>workspace/</code> của project này. Nhãn <span class="tag real">dữ liệu thật</span> là dữ liệu lấy từ code, README hoặc kết quả chạy thật của script. Nhãn <span class="tag sim">minh hoạ</span> là phần mô phỏng. Nhãn <span class="tag sim">suy luận</span> là điều suy ra từ code, chưa được đo.</div></footer>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+window.__errs=[];window.addEventListener('error',e=>window.__errs.push(String(e.message)));
+const DATA={"files": {".lab-workspace": "agent-tools-skills-lab workspace\n", "data/tasks.csv": "task_id,owner,hours\nT01,Lan,4\nT02,Minh,3\nT03,,2\nT04,Hoa,abc\nT02,Minh,3\nT05,An,5\n", "data/weekly_notes.md": "# Ghi chú công việc tuần 40 (dữ liệu giả cho lab)\n\n## 2026-09-28: Endpoint đăng nhập\n- Trạng thái: Hoàn thành\n- Phụ trách: Lan\n- Nội dung: Hoàn thành endpoint POST /auth/login, đã merge vào nhánh main, có unit test cho đăng nhập đúng và sai mật khẩu.\n\n## 2026-09-29: Refresh token\n- Trạng thái: Đang làm\n- Phụ trách: Minh\n- Nội dung: Đang implement refresh token rotation, xong khoảng 60%. Còn phần thu hồi refresh token cũ khi đăng xuất.\n\n## 2026-09-30: Lỗi test OAuth\n- Trạng thái: Chưa giải quyết\n- Phụ trách: Hoa\n- Nội dung: Test tích hợp đăng nhập OAuth với Google thất bại trên staging do redirect URI không khớp. Chưa xác định cấu hình nào sai.\n\n## 2026-10-01: Tài liệu API đăng nhập cho mobile\n- Trạng thái: Chưa bắt đầu\n- Phụ trách: (chưa có người phụ trách)\n- Nội dung: Team mobile cần tài liệu API đăng nhập và refresh token. Chưa có người nhận việc và chưa có deadline.\n\n## 2026-10-02: Kế hoạch tuần tới\n- Trạng thái: Kế hoạch\n- Phụ trách: Cả nhóm\n- Nội dung: Hoàn tất refresh token, tìm nguyên nhân lỗi OAuth trên staging, phân công người viết tài liệu API cho mobile.\n", "skills/csv-quality/SKILL.md": "---\nname: csv-quality\ndescription: Kiểm tra chất lượng file CSV danh sách công việc (cột task_id, owner, hours) bằng script có sẵn, rồi ghi báo cáo Markdown dưới output/. Dùng khi người dùng yêu cầu kiểm tra, rà soát hoặc đánh giá chất lượng dữ liệu CSV công việc.\n---\n\n# CSV quality\n\nKiểm tra chất lượng CSV công việc bằng script, không tự đếm bằng mắt.\n\n## Chạy script\n\nDùng tool `bash` (cwd là workspace). Lệnh đầy đủ:\n\n```\npython skills/csv-quality/scripts/check_csv.py --input <đường dẫn CSV>\n```\n\nVí dụ: `python skills/csv-quality/scripts/check_csv.py --input data/tasks.csv`\n\nKhông cần đọc source script để chạy. Chỉ đọc `scripts/check_csv.py` khi cần hiểu một hành vi mà phần dưới không mô tả.\n\n## Kiểm tra kết quả\n\n- `exit_code` 0: phân tích thành công. `stdout` là JSON gồm `row_count`, `missing_owner_count`, `invalid_hours_count`, `duplicate_id_count`, `duplicate_ids`, `issues`. Dữ liệu có lỗi chất lượng vẫn là exit 0.\n- `exit_code` 1: **lỗi thực thi** (file không tồn tại, thiếu cột bắt buộc, lỗi parse). Đọc `stderr`, báo lỗi cho người dùng. Không bịa thống kê, không ghi báo cáo như thể đã phân tích.\n- `timed_out` true hoặc `ok` false: lệnh không chạy xong; báo lỗi, không suy đoán kết quả.\n- Phân biệt rõ **lỗi dữ liệu** (nằm trong `issues`, script vẫn chạy thành công) với **lỗi thực thi** (exit khác 0).\n\n## Viết báo cáo\n\n1. Đọc template `references/report-template.md` trong thư mục skill này, tức `skills/csv-quality/references/report-template.md`.\n2. Lấy mọi con số từ JSON của script. Mỗi issue ghi line number (header là line 1), cột và mô tả.\n3. Không sửa file CSV khi người dùng chỉ yêu cầu kiểm tra. Có thể đề xuất cách sửa trong mục khuyến nghị.\n4. Không tính tổng giờ hay KPI khi còn dữ liệu lỗi; ghi rõ lý do.\n5. Ghi báo cáo bằng `write_file` vào đường dẫn người dùng yêu cầu (mặc định `output/csv-quality.md`), rồi trả lời đường dẫn và tóm tắt ngắn.\n", "skills/csv-quality/references/report-template.md": "# Báo cáo chất lượng dữ liệu: `{đường dẫn CSV}`\n\nCông cụ: `skills/csv-quality/scripts/check_csv.py` | exit code: {exit_code}\n\n## Tổng quan\n| Chỉ số | Giá trị |\n|---|---|\n| Số dòng dữ liệu (không tính header) | {row_count} |\n| Dòng thiếu owner | {missing_owner_count} |\n| Dòng hours không hợp lệ | {invalid_hours_count} |\n| Số task_id bị lặp (distinct) | {duplicate_id_count} ({duplicate_ids}) |\n\n## Chi tiết lỗi\n| Line | Cột | Loại | task_id | Mô tả |\n|---|---|---|---|---|\n| {line} | {column} | {type} | {task_id} | {message} |\n\n## Đánh giá\n- Dữ liệu có dùng được để tính tổng giờ/KPI chưa? Nếu còn lỗi: chưa, nêu lý do.\n\n## Khuyến nghị\n- {Cách sửa đề xuất cho từng nhóm lỗi; không tự sửa file nguồn}\n", "skills/csv-quality/scripts/check_csv.py": "#!/usr/bin/env python3\n\"\"\"Kiểm tra chất lượng CSV công việc (task_id, owner, hours) và in JSON ra stdout.\n\nCách chạy (cwd là workspace):\n    python skills/csv-quality/scripts/check_csv.py --input data/tasks.csv\n\nExit 0: phân tích thành công, kể cả khi dữ liệu có lỗi chất lượng.\nExit 1: file không tồn tại/không đọc được, thiếu cột bắt buộc hoặc lỗi parse CSV; thông báo ra stderr.\nScript chỉ đọc, không sửa CSV và không tính tổng giờ/KPI.\n\"\"\"\n\nfrom __future__ import annotations\n\nimport argparse\nimport csv\nimport json\nimport math\nimport sys\n\nREQUIRED_COLUMNS = (\"task_id\", \"owner\", \"hours\")\n\n\nclass InputError(Exception):\n    pass\n\n\ndef parse_hours(raw: str | None) -> float | None:\n    \"\"\"Số giờ hợp lệ: số hữu hạn, không âm. Trả None nếu không hợp lệ.\"\"\"\n    if raw is None or not raw.strip():\n        return None\n    try:\n        value = float(raw.strip())\n    except ValueError:\n        return None\n    if not math.isfinite(value) or value < 0:\n        return None\n    return value\n\n\ndef analyze(path: str) -> dict:\n    try:\n        handle = open(path, encoding=\"utf-8-sig\", newline=\"\")\n    except OSError as exc:\n        raise InputError(f\"Không đọc được file {path}: {exc.strerror or exc}\") from exc\n    with handle:\n        reader = csv.reader(handle, strict=True)\n        try:\n            header = next(reader, None)\n            if header is None:\n                raise InputError(f\"File {path} rỗng, không có header.\")\n            columns = [c.strip() for c in header]\n            missing = [c for c in REQUIRED_COLUMNS if c not in columns]\n            if missing:\n                raise InputError(f\"Thiếu cột bắt buộc: {', '.join(missing)}. Header hiện có: {', '.join(columns)}\")\n            index = {name: columns.index(name) for name in REQUIRED_COLUMNS}\n\n            row_count = 0\n            missing_owner = 0\n            invalid_hours = 0\n            first_seen: dict[str, int] = {}\n            duplicate_ids: list[str] = []\n            issues: list[dict] = []\n            for row in reader:\n                line = reader.line_num\n                if not any(cell.strip() for cell in row):\n                    continue  # bỏ qua dòng trống\n                row_count += 1\n\n                def cell(name: str) -> str:\n                    position = index[name]\n                    return row[position].strip() if position < len(row) else \"\"\n\n                task_id, owner, hours = cell(\"task_id\"), cell(\"owner\"), cell(\"hours\")\n                if len(row) != len(columns):\n                    issues.append({\"line\": line, \"column\": None, \"type\": \"wrong_field_count\", \"task_id\": task_id or None,\n                                   \"message\": f\"Có {len(row)} trường, header có {len(columns)} cột.\"})\n                if not task_id:\n                    issues.append({\"line\": line, \"column\": \"task_id\", \"type\": \"missing_task_id\", \"task_id\": None,\n                                   \"message\": \"task_id trống.\"})\n                elif task_id in first_seen:\n                    if task_id not in duplicate_ids:\n                        duplicate_ids.append(task_id)\n                    issues.append({\"line\": line, \"column\": \"task_id\", \"type\": \"duplicate_id\", \"task_id\": task_id,\n                                   \"message\": f\"task_id {task_id} đã xuất hiện ở line {first_seen[task_id]}.\"})\n                else:\n                    first_seen[task_id] = line\n                if not owner:\n                    missing_owner += 1\n                    issues.append({\"line\": line, \"column\": \"owner\", \"type\": \"missing_owner\", \"task_id\": task_id or None,\n                                   \"message\": \"owner trống.\"})\n                if parse_hours(hours) is None:\n                    invalid_hours += 1\n                    issues.append({\"line\": line, \"column\": \"hours\", \"type\": \"invalid_hours\", \"task_id\": task_id or None,\n                                   \"value\": hours, \"message\": f\"hours '{hours}' không phải số hữu hạn không âm.\"})\n        except csv.Error as exc:\n            raise InputError(f\"Lỗi parse CSV ở line {reader.line_num}: {exc}\") from exc\n        except UnicodeDecodeError as exc:\n            raise InputError(f\"File {path} không phải UTF-8: {exc}\") from exc\n\n    return {\n        \"input\": path,\n        \"row_count\": row_count,\n        \"missing_owner_count\": missing_owner,\n        \"invalid_hours_count\": invalid_hours,\n        \"duplicate_id_count\": len(duplicate_ids),\n        \"duplicate_ids\": duplicate_ids,\n        \"issues\": sorted(issues, key=lambda item: item[\"line\"]),\n    }\n\n\ndef main(argv: list[str] | None = None) -> int:\n    parser = argparse.ArgumentParser(description=\"Kiểm tra chất lượng CSV công việc (task_id, owner, hours).\")\n    parser.add_argument(\"--input\", required=True, help=\"Đường dẫn CSV, ví dụ data/tasks.csv\")\n    args = parser.parse_args(argv)\n    try:\n        result = analyze(args.input)\n    except InputError as exc:\n        print(f\"ERROR: {exc}\", file=sys.stderr)\n        return 1\n    print(json.dumps(result, ensure_ascii=False, indent=2))\n    return 0\n\n\nif __name__ == \"__main__\":\n    sys.exit(main())\n", "skills/weekly-report/SKILL.md": "---\nname: weekly-report\ndescription: Tạo báo cáo tiến độ tuần từ file ghi chú công việc trong workspace (ví dụ data/weekly_notes.md) và lưu thành file Markdown dưới output/. Dùng khi người dùng yêu cầu báo cáo tuần, tổng hợp tiến độ tuần hoặc weekly report.\n---\n\n# Weekly report\n\nHướng dẫn tạo báo cáo tuần từ ghi chú công việc.\n\n## Các bước\n\n1. Đọc file nguồn người dùng chỉ định bằng `read_file` (mặc định `data/weekly_notes.md`). Nếu đọc lỗi, báo lỗi và dừng; không tự tạo nội dung.\n2. Đọc template `references/report-template.md` trong thư mục skill này, tức `skills/weekly-report/references/report-template.md`.\n3. Phân loại từng ghi chú theo đúng trạng thái ghi trong nguồn:\n   - `Hoàn thành` → **Đã hoàn thành**.\n   - `Đang làm` → **Đang thực hiện**, giữ tiến độ nếu nguồn có ghi (ví dụ 60%).\n   - `Chưa giải quyết`, `Bị chặn` hoặc mô tả lỗi chưa xử lý → **Vướng mắc**.\n   - `Kế hoạch` → **Kế hoạch tiếp theo**.\n   - Việc `Chưa bắt đầu` đưa vào mục phù hợp nhất (thường là Kế hoạch tiếp theo) và nêu rõ chưa bắt đầu.\n4. Không chuyển việc chưa xong thành hoàn thành. Không thêm việc, ngày hay người phụ trách không có trong nguồn.\n5. Mục **Thông tin cần bổ sung**: liệt kê dữ liệu thiếu thấy trong nguồn, ví dụ việc chưa có người phụ trách, chưa có deadline, lỗi chưa rõ nguyên nhân. Nếu không thiếu gì, ghi \"Không có\".\n6. Điền đúng các mục của template, ghi ngày nguồn khi có. Ghi file bằng `write_file` vào đường dẫn người dùng yêu cầu (mặc định `output/weekly-report.md`).\n7. Trả lời người dùng: đường dẫn file đã ghi (theo kết quả `write_file`) và tóm tắt 2–3 dòng. Nếu ghi lỗi, báo lỗi.\n", "skills/weekly-report/references/report-template.md": "# Báo cáo tuần: {Tuần/khoảng ngày theo nguồn}\n\nNguồn: `{đường dẫn file nguồn}`\n\n## Đã hoàn thành\n- {Việc}: {người phụ trách} ({ngày})\n\n## Đang thực hiện\n- {Việc} ({người phụ trách}): {tiến độ / phần còn lại}\n\n## Vướng mắc\n- {Vấn đề} ({người phụ trách}): {mô tả, tác động}\n\n## Thông tin cần bổ sung\n- {Thông tin còn thiếu và ai cần cung cấp}\n\n## Kế hoạch tiếp theo\n- {Việc dự kiến}\n"}, "tr": {"read_skill_csv": "{\"ok\": true, \"path\": \"skills/csv-quality/SKILL.md\", \"content\": \"---\\nname: csv-quality\\ndescription: Kiểm tra chất lượng file CSV danh sách công việc (cột task_id, owner, hours) bằng script có sẵn, rồi ghi báo cáo Markdown dưới output/. Dùng khi người dùng yêu cầu kiểm tra, rà soát hoặc đánh giá chất lượng dữ liệu CSV công việc.\\n---\\n\\n# CSV quality\\n\\nKiểm tra chất lượng CSV công việc bằng script, không tự đếm bằng mắt.\\n\\n## Chạy script\\n\\nDùng tool `bash` (cwd là workspace). Lệnh đầy đủ:\\n\\n```\\npython skills/csv-quality/scripts/check_csv.py --input <đường dẫn CSV>\\n```\\n\\nVí dụ: `python skills/csv-quality/scripts/check_csv.py --input data/tasks.csv`\\n\\nKhông cần đọc source script để chạy. Chỉ đọc `scripts/check_csv.py` khi cần hiểu một hành vi mà phần dưới không mô tả.\\n\\n## Kiểm tra kết quả\\n\\n- `exit_code` 0: phân tích thành công. `stdout` là JSON gồm `row_count`, `missing_owner_count`, `invalid_hours_count`, `duplicate_id_count`, `duplicate_ids`, `issues`. Dữ liệu có lỗi chất lượng vẫn là exit 0.\\n- `exit_code` 1: **lỗi thực thi** (file không tồn tại, thiếu cột bắt buộc, lỗi parse). Đọc `stderr`, báo lỗi cho người dùng. Không bịa thống kê, không ghi báo cáo như thể đã phân tích.\\n- `timed_out` true hoặc `ok` false: lệnh không chạy xong; báo lỗi, không suy đoán kết quả.\\n- Phân biệt rõ **lỗi dữ liệu** (nằm trong `issues`, script vẫn chạy thành công) với **lỗi thực thi** (exit khác 0).\\n\\n## Viết báo cáo\\n\\n1. Đọc template `references/report-template.md` trong thư mục skill này, tức `skills/csv-quality/references/report-template.md`.\\n2. Lấy mọi con số từ JSON của script. Mỗi issue ghi line number (header là line 1), cột và mô tả.\\n3. Không sửa file CSV khi người dùng chỉ yêu cầu kiểm tra. Có thể đề xuất cách sửa trong mục khuyến nghị.\\n4. Không tính tổng giờ hay KPI khi còn dữ liệu lỗi; ghi rõ lý do.\\n5. Ghi báo cáo bằng `write_file` vào đường dẫn người dùng yêu cầu (mặc định `output/csv-quality.md`), rồi trả lời đường dẫn và tóm tắt ngắn.\\n\"}", "read_tpl_csv": "{\"ok\": true, \"path\": \"skills/csv-quality/references/report-template.md\", \"content\": \"# Báo cáo chất lượng dữ liệu: `{đường dẫn CSV}`\\n\\nCông cụ: `skills/csv-quality/scripts/check_csv.py` | exit code: {exit_code}\\n\\n## Tổng quan\\n| Chỉ số | Giá trị |\\n|---|---|\\n| Số dòng dữ liệu (không tính header) | {row_count} |\\n| Dòng thiếu owner | {missing_owner_count} |\\n| Dòng hours không hợp lệ | {invalid_hours_count} |\\n| Số task_id bị lặp (distinct) | {duplicate_id_count} ({duplicate_ids}) |\\n\\n## Chi tiết lỗi\\n| Line | Cột | Loại | task_id | Mô tả |\\n|---|---|---|---|---|\\n| {line} | {column} | {type} | {task_id} | {message} |\\n\\n## Đánh giá\\n- Dữ liệu có dùng được để tính tổng giờ/KPI chưa? Nếu còn lỗi: chưa, nêu lý do.\\n\\n## Khuyến nghị\\n- {Cách sửa đề xuất cho từng nhóm lỗi; không tự sửa file nguồn}\\n\"}", "read_script": "{\"ok\": true, \"path\": \"skills/csv-quality/scripts/check_csv.py\", \"content\": \"#!/usr/bin/env python3\\n\\\"\\\"\\\"Kiểm tra chất lượng CSV công việc (task_id, owner, hours) và in JSON ra stdout.\\n\\nCách chạy (cwd là workspace):\\n    python skills/csv-quality/scripts/check_csv.py --input data/tasks.csv\\n\\nExit 0: phân tích thành công, kể cả khi dữ liệu có lỗi chất lượng.\\nExit 1: file không tồn tại/không đọc được, thiếu cột bắt buộc hoặc lỗi parse CSV; thông báo ra stderr.\\nScript chỉ đọc, không sửa CSV và không tính tổng giờ/KPI.\\n\\\"\\\"\\\"\\n\\nfrom __future__ import annotations\\n\\nimport argparse\\nimport csv\\nimport json\\nimport math\\nimport sys\\n\\nREQUIRED_COLUMNS = (\\\"task_id\\\", \\\"owner\\\", \\\"hours\\\")\\n\\n\\nclass InputError(Exception):\\n    pass\\n\\n\\ndef parse_hours(raw: str | None) -> float | None:\\n    \\\"\\\"\\\"Số giờ hợp lệ: số hữu hạn, không âm. Trả None nếu không hợp lệ.\\\"\\\"\\\"\\n    if raw is None or not raw.strip():\\n        return None\\n    try:\\n        value = float(raw.strip())\\n    except ValueError:\\n        return None\\n    if not math.isfinite(value) or value < 0:\\n        return None\\n    return value\\n\\n\\ndef analyze(path: str) -> dict:\\n    try:\\n        handle = open(path, encoding=\\\"utf-8-sig\\\", newline=\\\"\\\")\\n    except OSError as exc:\\n        raise InputError(f\\\"Không đọc được file {path}: {exc.strerror or exc}\\\") from exc\\n    with handle:\\n        reader = csv.reader(handle, strict=True)\\n        try:\\n            header = next(reader, None)\\n            if header is None:\\n                raise InputError(f\\\"File {path} rỗng, không có header.\\\")\\n            columns = [c.strip() for c in header]\\n            missing = [c for c in REQUIRED_COLUMNS if c not in columns]\\n            if missing:\\n                raise InputError(f\\\"Thiếu cột bắt buộc: {', '.join(missing)}. Header hiện có: {', '.join(columns)}\\\")\\n            index = {name: columns.index(name) for name in REQUIRED_COLUMNS}\\n\\n            row_count = 0\\n            missing_owner = 0\\n            invalid_hours = 0\\n            first_seen: dict[str, int] = {}\\n            duplicate_ids: list[str] = []\\n            issues: list[dict] = []\\n            for row in reader:\\n                line = reader.line_num\\n                if not any(cell.strip() for cell in row):\\n                    continue  # bỏ qua dòng trống\\n                row_count += 1\\n\\n                def cell(name: str) -> str:\\n                    position = index[name]\\n                    return row[position].strip() if position < len(row) else \\\"\\\"\\n\\n                task_id, owner, hours = cell(\\\"task_id\\\"), cell(\\\"owner\\\"), cell(\\\"hours\\\")\\n                if len(row) != len(columns):\\n                    issues.append({\\\"line\\\": line, \\\"column\\\": None, \\\"type\\\": \\\"wrong_field_count\\\", \\\"task_id\\\": task_id or None,\\n                                   \\\"message\\\": f\\\"Có {len(row)} trường, header có {len(columns)} cột.\\\"})\\n                if not task_id:\\n                    issues.append({\\\"line\\\": line, \\\"column\\\": \\\"task_id\\\", \\\"type\\\": \\\"missing_task_id\\\", \\\"task_id\\\": None,\\n                                   \\\"message\\\": \\\"task_id trống.\\\"})\\n                elif task_id in first_seen:\\n                    if task_id not in duplicate_ids:\\n                        duplicate_ids.append(task_id)\\n                    issues.append({\\\"line\\\": line, \\\"column\\\": \\\"task_id\\\", \\\"type\\\": \\\"duplicate_id\\\", \\\"task_id\\\": task_id,\\n                                   \\\"message\\\": f\\\"task_id {task_id} đã xuất hiện ở line {first_seen[task_id]}.\\\"})\\n                else:\\n                    first_seen[task_id] = line\\n                if not owner:\\n                    missing_owner += 1\\n                    issues.append({\\\"line\\\": line, \\\"column\\\": \\\"owner\\\", \\\"type\\\": \\\"missing_owner\\\", \\\"task_id\\\": task_id or None,\\n                                   \\\"message\\\": \\\"owner trống.\\\"})\\n                if parse_hours(hours) is None:\\n                    invalid_hours += 1\\n                    issues.append({\\\"line\\\": line, \\\"column\\\": \\\"hours\\\", \\\"type\\\": \\\"invalid_hours\\\", \\\"task_id\\\": task_id or None,\\n                                   \\\"value\\\": hours, \\\"message\\\": f\\\"hours '{hours}' không phải số hữu hạn không âm.\\\"})\\n        except csv.Error as exc:\\n            raise InputError(f\\\"Lỗi parse CSV ở line {reader.line_num}: {exc}\\\") from exc\\n        except UnicodeDecodeError as exc:\\n            raise InputError(f\\\"File {path} không phải UTF-8: {exc}\\\") from exc\\n\\n    return {\\n        \\\"input\\\": path,\\n        \\\"row_count\\\": row_count,\\n        \\\"missing_owner_count\\\": missing_owner,\\n        \\\"invalid_hours_count\\\": invalid_hours,\\n        \\\"duplicate_id_count\\\": len(duplicate_ids),\\n        \\\"duplicate_ids\\\": duplicate_ids,\\n        \\\"issues\\\": sorted(issues, key=lambda item: item[\\\"line\\\"]),\\n    }\\n\\n\\ndef main(argv: list[str] | None = None) -> int:\\n    parser = argparse.ArgumentParser(description=\\\"Kiểm tra chất lượng CSV công việc (task_id, owner, hours).\\\")\\n    parser.add_argument(\\\"--input\\\", required=True, help=\\\"Đường dẫn CSV, ví dụ data/tasks.csv\\\")\\n    args = parser.parse_args(argv)\\n    try:\\n        result = analyze(args.input)\\n    except InputError as exc:\\n        print(f\\\"ERROR: {exc}\\\", file=sys.stderr)\\n        return 1\\n    print(json.dumps(result, ensure_ascii=False, indent=2))\\n    return 0\\n\\n\\nif __name__ == \\\"__main__\\\":\\n    sys.exit(main())\\n\"}", "bash_ok": "{\"ok\": true, \"exit_code\": 0, \"stdout\": \"{\\n  \\\"input\\\": \\\"data/tasks.csv\\\",\\n  \\\"row_count\\\": 6,\\n  \\\"missing_owner_count\\\": 1,\\n  \\\"invalid_hours_count\\\": 1,\\n  \\\"duplicate_id_count\\\": 1,\\n  \\\"duplicate_ids\\\": [\\n    \\\"T02\\\"\\n  ],\\n  \\\"issues\\\": [\\n    {\\n      \\\"line\\\": 4,\\n      \\\"column\\\": \\\"owner\\\",\\n      \\\"type\\\": \\\"missing_owner\\\",\\n      \\\"task_id\\\": \\\"T03\\\",\\n      \\\"message\\\": \\\"owner trống.\\\"\\n    },\\n    {\\n      \\\"line\\\": 5,\\n      \\\"column\\\": \\\"hours\\\",\\n      \\\"type\\\": \\\"invalid_hours\\\",\\n      \\\"task_id\\\": \\\"T04\\\",\\n      \\\"value\\\": \\\"abc\\\",\\n      \\\"message\\\": \\\"hours 'abc' không phải số hữu hạn không âm.\\\"\\n    },\\n    {\\n      \\\"line\\\": 6,\\n      \\\"column\\\": \\\"task_id\\\",\\n      \\\"type\\\": \\\"duplicate_id\\\",\\n      \\\"task_id\\\": \\\"T02\\\",\\n      \\\"message\\\": \\\"task_id T02 đã xuất hiện ở line 3.\\\"\\n    }\\n  ]\\n}\\n\", \"stderr\": \"\", \"timed_out\": false, \"truncated\": false}", "bash_err": "{\"ok\": true, \"exit_code\": 1, \"stdout\": \"\", \"stderr\": \"ERROR: Không đọc được file data/khong-co.csv: No such file or directory\\n\", \"timed_out\": false, \"truncated\": false}", "bash_noarg": "{\"ok\": true, \"exit_code\": 2, \"stdout\": \"\", \"stderr\": \"usage: check_csv.py [-h] --input INPUT\\ncheck_csv.py: error: the following arguments are required: --input\\n\", \"timed_out\": false, \"truncated\": false}"}, "skills": [{"name": "csv-quality", "description": "Kiểm tra chất lượng file CSV danh sách công việc (cột task_id, owner, hours) bằng script có sẵn, rồi ghi báo cáo Markdown dưới output/. Dùng khi người dùng yêu cầu kiểm tra, rà soát hoặc đánh giá chất lượng dữ liệu CSV công việc.", "location": "skills/csv-quality/SKILL.md"}, {"name": "weekly-report", "description": "Tạo báo cáo tiến độ tuần từ file ghi chú công việc trong workspace (ví dụ data/weekly_notes.md) và lưu thành file Markdown dưới output/. Dùng khi người dùng yêu cầu báo cáo tuần, tổng hợp tiến độ tuần hoặc weekly report.", "location": "skills/weekly-report/SKILL.md"}], "prompts": {"base": "Bạn là trợ lý trong lab \"Agent Tools & Skills\". Trả lời bằng tiếng Việt, ngắn gọn, rõ ràng.\n\nQuy tắc:\n- Chỉ dùng các tool được cấp trong request để thao tác dữ liệu. Nếu không có tool phù hợp, nói rõ giới hạn thay vì đoán.\n- Chỉ nói đã đọc, ghi hoặc chạy một thứ khi đã nhận tool result thành công cho đúng thao tác đó.\n- Khi tool trả lỗi, báo lỗi cho người dùng và đề xuất cách xử lý; không bịa kết quả.", "cap": "Workspace:\n- Mọi đường dẫn file đều tương đối workspace, ví dụ data/weekly_notes.md.\n- read_file đọc được file trong workspace. write_file chỉ ghi được dưới output/, ví dụ output/summary.md.\n- bash chạy lệnh ngắn với cwd là workspace, timeout 10 giây. `python` là Python của project.\n- Với bash, đọc exit_code, stdout, stderr trong kết quả. exit_code khác 0 là chương trình báo lỗi; timed_out=true là lệnh bị dừng. Báo đúng kết quả thực tế.", "skills": "Skills:\nCác skill dưới đây chứa hướng dẫn chuyên biệt. Danh sách chỉ có metadata; nội dung skill chưa được nạp.\n- Khi task khớp description của một skill, dùng read_file đọc SKILL.md tại <location> trước khi làm, rồi làm theo hướng dẫn trong đó.\n- Đường dẫn tương đối trong SKILL.md được resolve từ thư mục chứa SKILL.md. Ví dụ references/x.md của skill tại skills/abc/SKILL.md là skills/abc/references/x.md.\n- Chỉ đọc tài nguyên cần cho task. Không load skill khi task không liên quan."}, "tools": [{"name": "read_file", "doc": "Đọc một file văn bản UTF-8 trong workspace và trả về JSON.\n\npath là đường dẫn tương đối workspace, ví dụ: data/weekly_notes.md, output/summary.md.\nDùng để đọc dữ liệu đầu vào, file SKILL.md của một skill và các file reference trong thư mục skill.\nThành công: {\"ok\": true, \"path\": ..., \"content\": ...}. Lỗi: {\"ok\": false, \"error\": {\"code\": ..., \"message\": ...}}.", "params": [["path", "str"]]}, {"name": "write_file", "doc": "Ghi nội dung văn bản UTF-8 vào một file dưới output/ của workspace và trả về JSON.\n\npath là đường dẫn tương đối workspace và phải bắt đầu bằng output/, ví dụ output/summary.md.\nTự tạo thư mục con. Ghi đè nếu file đã tồn tại.\nThành công: {\"ok\": true, \"path\": ..., \"bytes\": ..., \"status\": \"created\" | \"updated\"}. Lỗi: {\"ok\": false, \"error\": {...}}.", "params": [["path", "str"], ["content", "str"]]}, {"name": "bash", "doc": "Chạy một lệnh bash ngắn (bash -c) trong thư mục workspace và trả về JSON.\n\ncwd là workspace, nên dùng đường dẫn tương đối như data/tasks.csv. `python` là Python của project.\nTimeout 10 giây; không chạy tiến trình nền hay lệnh tương tác.\nKết quả: {\"ok\": true, \"exit_code\": 0, \"stdout\": \"...\", \"stderr\": \"\", \"timed_out\": false}.\nok=true nghĩa là lệnh đã chạy xong và có kết quả; exit_code khác 0 nghĩa là chương trình báo lỗi.\nTimeout: {\"ok\": false, \"exit_code\": null, \"timed_out\": true, ...} kèm output một phần nếu có.", "params": [["command", "str"]]}], "systemLen": 2097, "catalogBlock": "<available_skills>\n  <skill>\n    <name>csv-quality<\/name>\n    <description>Kiểm tra chất lượng file CSV danh sách công việc (cột task_id, owner, hours) bằng script có sẵn, rồi ghi báo cáo Markdown dưới output/. Dùng khi người dùng yêu cầu kiểm tra, rà soát hoặc đánh giá chất lượng dữ liệu CSV công việc.<\/description>\n    <location>skills/csv-quality/SKILL.md<\/location>\n  <\/skill>\n  <skill>\n    <name>weekly-report<\/name>\n    <description>Tạo báo cáo tiến độ tuần từ file ghi chú công việc trong workspace (ví dụ data/weekly_notes.md) và lưu thành file Markdown dưới output/. Dùng khi người dùng yêu cầu báo cáo tuần, tổng hợp tiến độ tuần hoặc weekly report.<\/description>\n    <location>skills/weekly-report/SKILL.md<\/location>\n  <\/skill>\n<\/available_skills>"};
+const F=DATA.files, T=DATA.tr, P=DATA.prompts;
+const REAL='<span class="tag real">dữ liệu thật</span>', SIM='<span class="tag sim">minh hoạ</span>', INF='<span class="tag sim">suy luận</span>';
+const enc=new TextEncoder();
+const bytes=s=>enc.encode(s).length;
+const pyDumps=o=>'{'+Object.entries(o).map(([k,v])=>JSON.stringify(k)+': '+JSON.stringify(v)).join(', ')+'}';
+const sum=a=>a.reduce((x,y)=>x+y,0);
+const short=(s,n)=>{s=String(s).replace(/\s+/g,' ');return s.length>n?s.slice(0,n)+'…':s};
+const xesc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* ---------- system prompt (from prompts.py + skill_catalog.py) ---------- */
+function catalogBlock(skills){
+  if(!skills.length) return '';
+  return '<available_skills>\n'+skills.map(s=>'  <skill>\n    <name>'+xesc(s.name)+'</name>\n    <description>'+xesc(s.description)+'</description>\n    <location>'+xesc(s.location)+'</location>\n  </skill>').join('\n')+'\n</available_skills>';
+}
+function sysParts(skills){
+  const parts=[{k:'base',t:P.base},{k:'cap',t:P.cap}], blk=catalogBlock(skills);
+  if(blk){parts.push({k:'skills',t:P.skills});parts.push({k:'cat',t:blk});}
+  return parts;
+}
+const sysText=parts=>parts.map(p=>p.t).join('\n\n');
+const SYS_PARTS=sysParts(DATA.skills), SYSTEM=sysText(SYS_PARTS);
+
+/* ---------- 1. architecture ---------- */
+const NODES=[
+ {i:'👤',t:'Người dùng',f:'trình duyệt',d:'Nhập prompt vào ô chat. Mỗi lần gửi là một <b>lượt chat</b>. Ba prompt thử trong README: <code>Kiểm tra chất lượng data/tasks.csv và ghi báo cáo vào output/csv-quality.md.</code>, <code>Kiểm tra chất lượng data/khong-co.csv.</code> và (lượt tiếp theo) <code>Dòng nào thiếu owner?</code>'},
+ {i:'🖥️',t:'Streamlit UI',f:'app.py',d:'Vẽ cột chat, cột State &amp; Context và khu <b>File đầu ra</b>. Chạy <code>agent.stream(..., stream_mode=["updates","custom"])</code> với <code>recursion_limit=50</code>. <code>model_history</code> chỉ được cập nhật khi lượt thành công, nên lượt lỗi bị rollback. Xem file output là thao tác UI, không gửi nội dung vào context.'},
+ {i:'🧠',t:'LangChain agent',f:'agent.py',d:'<code>create_agent(model, tools=[read_file, write_file, bash], system_prompt=system_prompt(), middleware=[...])</code>. Middleware theo thứ tự: <code>ModelCallLimitMiddleware(run_limit=8, exit_behavior="end")</code>, <code>ToolCallLimitMiddleware(run_limit=20)</code>, <code>ObserverMiddleware()</code>. Observer đứng cuối, sát lời gọi model và tool nhất. System prompt ghép từ <code>BASE_PROMPT</code>, <code>CAPABILITY_PROMPT</code>, <code>SKILLS_PROMPT</code> và catalog (<code>prompts.py</code>).'},
+ {i:'🔧',t:'Tools',f:'tools/files.py, tools/bash.py',d:'Ba tool: <code>read_file(path)</code>, <code>write_file(path, content)</code>, <code>bash(command)</code>. Tool nào cũng trả về chuỗi JSON. Lỗi dự kiến trả về dạng <code>{"ok": false, "error": {...}}</code> để model đọc được. Với skill có script, <code>bash</code> là tool chạy script.'},
+ {i:'☁️',t:'ChatOpenAI và OpenRouter',f:'build_model()',d:'<code>ChatOpenAI(model, api_key, base_url)</code> kết nối mặc định tới <code>https://openrouter.ai/api/v1</code>; có thể override bằng <code>OPENROUTER_BASE_URL</code>. Model phải hỗ trợ tool calling theo chuẩn OpenAI Chat Completions (<code>tools</code>, <code>tool_calls</code>, message role <code>tool</code>).'},
+];
+const SIDE=[
+ {i:'📚',t:'Skill catalog',f:'skill_catalog.py',d:'<code>scan_skills()</code> quét <code>workspace/skills/*/SKILL.md</code>, đọc frontmatter bằng <code>yaml.safe_load</code>, chỉ giữ <code>name</code>, <code>description</code>, <code>location</code>. <code>render_catalog()</code> tạo khối <code>&lt;available_skills&gt;</code>. Skill thiếu metadata hoặc YAML sai bị bỏ qua kèm diagnostic. Xem phần 3.'},
+ {i:'🗂️',t:'Workspace',f:'workspace/, fixtures/',d:'Thư mục làm việc của agent. Lần chạy đầu, <code>reset_workspace.ensure_workspace()</code> copy từ <code>fixtures/</code>, chạy lại không ghi đè. <code>reset_workspace.py</code> khôi phục dữ liệu gốc và xóa output, giữ <code>traces/</code>. Chỉ thao tác khi có marker <code>.lab-workspace</code>. Xem phần 2.'},
+ {i:'🐍',t:'Script của skill',f:'skills/csv-quality/scripts/check_csv.py',nw:1,d:'<b>Mới ở Stage 04.</b> Script độc lập chỉ dùng thư viện chuẩn (<code>argparse</code>, <code>csv</code>, <code>json</code>, <code>math</code>, <code>sys</code>). Nhận <code>--input &lt;csv&gt;</code>, in JSON ra stdout. Exit 0 khi phân tích xong (kể cả khi dữ liệu có lỗi), exit 1 khi file không đọc được, thiếu cột bắt buộc hoặc lỗi parse. Script chỉ đọc, không sửa CSV. Nó không phải tool: model chạy nó qua <code>bash</code>.'},
+ {i:'🔭',t:'Observer',f:'observer.py',d:'Nhận event ở luồng UI, đánh số <b>sequence</b> và giữ counters, snapshots, message history. Có 7 loại event: <code>user_submitted</code>, <code>model_request</code>, <code>model_response</code>, <code>tool_started</code>, <code>tool_finished</code>, <code>run_completed</code>, <code>run_failed</code>. Hàm <code>context_inventory()</code> chỉ tính <code>read_file</code> có <code>ok=true</code> và content không rỗng, còn chạy script bằng <code>bash</code> thì không tính là đã đọc source.'},
+ {i:'📝',t:'Trace writer',f:'trace.py',d:'Ghi mỗi event thành một dòng JSONL trong <code>traces/</code>. Exception bất ngờ ghi thêm vào <code>traces/debug.log</code>. API key, headers và biến môi trường không được ghi.'},
+];
+function renderArch(){
+  const mk=(n,idx,g)=>`<div class="node ${n.dim?'dim':''} ${n.nw?'new':''}" data-g="${g}" data-i="${idx}">${n.nw?'<span class="newtag">mới</span>':''}<span class="ico">${n.i}</span>${n.t}<small>${n.f}</small></div>`;
+  $('#arch').innerHTML=NODES.map((n,i)=>mk(n,i,'n')).join('')+'<div class="flowline">Hàng trên là luồng xử lý chính từ người dùng đến model. Hàng dưới là các thành phần phụ.</div>'+SIDE.map((n,i)=>mk(n,i,'s')).join('');
+  $$('#arch .node').forEach(el=>el.onclick=()=>pick(el));
+  pick($('#arch .node[data-g="s"][data-i="2"]'));
+}
+function pick(el){
+  $$('#arch .node').forEach(n=>n.classList.remove('on')); el.classList.add('on');
+  const n=(el.dataset.g==='n'?NODES:SIDE)[+el.dataset.i];
+  $('#archDetail').innerHTML=`<h4>${n.i} ${n.t} <code>${n.f}</code> ${REAL}</h4><div>${n.d}</div>`;
+}
+renderArch();
+
+/* ---------- 2. workspace ---------- */
+const TREE=[
+ {p:'.lab-workspace',d:0,k:'marker'},
+ {p:'data/',dir:1,d:0},
+ {p:'data/tasks.csv',d:1,k:'data',nw:1},
+ {p:'data/weekly_notes.md',d:1,k:'data'},
+ {p:'output/',dir:1,d:0,note:'(rỗng ban đầu)'},
+ {p:'skills/',dir:1,d:0},
+ {p:'skills/csv-quality/',dir:1,d:1,nw:1},
+ {p:'skills/csv-quality/SKILL.md',d:2,k:'skill',nw:1},
+ {p:'skills/csv-quality/references/',dir:1,d:2},
+ {p:'skills/csv-quality/references/report-template.md',d:3,k:'ref',nw:1},
+ {p:'skills/csv-quality/scripts/',dir:1,d:2,nw:1},
+ {p:'skills/csv-quality/scripts/check_csv.py',d:3,k:'script',nw:1},
+ {p:'skills/weekly-report/',dir:1,d:1},
+ {p:'skills/weekly-report/SKILL.md',d:2,k:'skill'},
+ {p:'skills/weekly-report/references/',dir:1,d:2},
+ {p:'skills/weekly-report/references/report-template.md',d:3,k:'ref'},
+];
+const ROLE={
+ marker:'File đánh dấu workspace của lab. <code>reset_workspace</code> chỉ xóa hoặc ghi đè thư mục có file này với đúng nội dung <code>agent-tools-skills-lab workspace</code>.',
+ data:'Dữ liệu đầu vào. Agent đọc bằng <code>read_file</code>. Script của skill cũng đọc file này và không sửa nó. <code>write_file</code> không ghi được ra ngoài <code>output/</code>.',
+ skill:'File hướng dẫn của skill. Phần frontmatter (màu xanh) vào catalog từ đầu. Phần body (màu cam) chỉ vào history khi model <code>read_file</code> file này.',
+ ref:'Tài nguyên tham khảo của skill. Model đọc bằng <code>read_file</code> khi SKILL.md yêu cầu. Đường dẫn trong SKILL.md được resolve từ thư mục chứa SKILL.md.',
+ script:'Script của skill. Model chạy bằng <code>bash</code> theo lệnh trong SKILL.md. Source không vào context, chỉ stdout và stderr vào context. SKILL.md ghi rõ: không cần đọc source để chạy.',
+};
+let selFile='skills/csv-quality/scripts/check_csv.py';
+function renderTree(){
+  $('#tree').innerHTML='<div class="dir">workspace/</div>'+TREE.map(n=>{
+    const pad=`padding-left:${.5+n.d*1.1}rem`;
+    const tg=n.nw?' <span class="tag sim" style="background:var(--orange);color:#fff">mới</span>':'';
+    const name=n.dir?n.p.replace(/\/$/,'').split('/').pop()+'/':n.p.split('/').pop();
+    if(n.dir) return `<div class="dir" style="${pad}">${name}${n.note?' <span class="invisible-hint">'+n.note+'</span>':''}${tg}</div>`;
+    return `<button class="${n.p===selFile?'sel':''}" data-p="${n.p}" style="${pad}">${name}${tg}</button>`;
+  }).join('');
+  $$('#tree button').forEach(b=>b.onclick=()=>{selFile=b.dataset.p;renderTree();renderFile()});
+}
+function renderFile(){
+  const n=TREE.find(x=>x.p===selFile), txt=F[selFile];
+  let body;
+  if(n.k==='skill'){
+    const lines=txt.split('\n');let end=lines.indexOf('---',1);
+    const fm=lines.slice(0,end+1).join('\n'),bd=lines.slice(end+1).join('\n');
+    body=`<div class="prompt-view"><span class="hl-base">${esc(fm)}</span>\n<span class="hl-cap">${esc(bd)}</span></div><div class="legend" style="margin-top:.4rem"><span><i style="background:#cfe8dc"></i>frontmatter, vào catalog</span><span><i style="background:#fbe2bf"></i>body, vào history khi read_file</span></div>`;
+  } else body=`<div class="prompt-view">${esc(txt)}</div>`;
+  const isScript=n.k==='script';
+  const caps=`<div class="caps">
+    <div class="cap y"><b>read_file</b>đọc được (UTF-8, tối đa 200.000 byte)</div>
+    <div class="cap n"><b>write_file</b>không (chỉ ghi dưới output/)</div>
+    <div class="cap ${isScript?'y':'w'}"><b>bash</b>${isScript?'chạy được bằng python':'đọc được (cat), không bị chặn'}</div></div>`;
+  $('#fileView').innerHTML=`<h3><code>${selFile}</code></h3><div class="row"><span class="tag real">${txt.length} ký tự</span><span class="tag real">${bytes(txt)} byte</span>${n.nw?'<span class="tag" style="background:var(--orange);color:#fff">mới ở Stage 04</span>':''}</div><p>${ROLE[n.k]}</p>${caps}<div style="max-height:22rem;overflow:auto">${body}</div>`;
+}
+renderTree();renderFile();
+
+/* context cost widget */
+const COST=[
+ {id:'zSkill',cls:'sk',t:'SKILL.md',v:()=>T.read_skill_csv.length},
+ {id:'zRun',cls:'ct',t:'bash',v:()=>T.bash_ok.length},
+ {id:'zTpl',cls:'cp',t:'template',v:()=>T.read_tpl_csv.length},
+ {id:'zSrc',cls:'tm',t:'source',v:()=>T.read_script.length},
+];
+function renderCost(){
+  const base=SYSTEM.length;
+  const on=COST.filter(c=>$('#'+c.id).checked);
+  const total=base+sum(on.map(c=>c.v()));
+  $('#zStack').innerHTML=`<div class="sp" style="width:${base/total*100}%">system ${base}</div>`+on.map(c=>`<div class="${c.cls}" style="width:${c.v()/total*100}%">${c.t} ${c.v()}</div>`).join('');
+  $('#zNums').textContent=`tổng = ${base}`+on.map(c=>` + ${c.v()} (${c.t})`).join('')+` = ${total} ký tự`;
+  $('#zNote').innerHTML=$('#zSrc').checked?`Đọc source script tốn ${T.read_script.length} ký tự trong khi chạy script chỉ tốn ${T.bash_ok.length} ký tự (stdout). SKILL.md ghi <i>không cần đọc source để chạy</i>, nên model không phải trả chi phí này.`:`Chạy script chỉ đưa stdout (${T.bash_ok.length} ký tự trong tool result) vào context. Source ${T.read_script.length} ký tự nằm trên đĩa và không vào context nếu model không <code>read_file</code> nó.`;
+}
+COST.forEach(c=>$('#'+c.id).onchange=renderCost);renderCost();
+
+/* ensure / reset */
+function renderWs(){
+  const ex=$('#wExists').checked,dt=$('#wData').checked,mk=$('#wMarker').checked,ln=$('#wLink').checked;
+  $('#wData').disabled=!ex;$('#wMarker').disabled=!ex;$('#wLink').disabled=!ex;
+  let e,eCls='ok',r,rCls='ok';
+  if(ex&&mk) e='<code>ensure_workspace()</code>: có marker đúng nội dung, không làm gì. Rerun không ghi đè dữ liệu.';
+  else if(ex&&dt){e='<code>ensure_workspace()</code> báo <code>WorkspaceError</code>: đã có dữ liệu nhưng thiếu marker, không tự ghi đè.';eCls='bad'}
+  else e='<code>ensure_workspace()</code>: copy các thư mục trong <code>fixtures/</code> sang workspace, tạo <code>output/</code> và ghi marker.';
+  if(ex&&ln){r='<code>reset_workspace()</code> báo <code>WorkspaceError</code>: workspace là symlink, không reset.';rCls='bad'}
+  else if(ex&&!mk){r='<code>reset_workspace()</code> báo <code>WorkspaceError</code>: thiếu marker, không xóa thư mục không thuộc lab.';rCls='bad'}
+  else if(ex) r='<code>reset_workspace()</code>: xóa mọi thứ trong workspace (kể cả <code>output/</code>), rồi copy lại từ <code>fixtures/</code>. Thư mục <code>traces/</code> nằm ngoài workspace nên được giữ.';
+  else r='<code>reset_workspace()</code>: workspace chưa tồn tại, copy từ <code>fixtures/</code> và ghi marker.';
+  $('#wEnsure').className='note '+eCls;$('#wEnsure').innerHTML=e;
+  $('#wReset').className='note '+rCls;$('#wReset').innerHTML=r;
+}
+['#wExists','#wData','#wMarker','#wLink'].forEach(i=>$(i).onchange=renderWs);renderWs();
+
+/* ---------- 3. catalog ---------- */
+function miniYaml(lines){
+  const o={};let any=false;
+  for(const l of lines){
+    if(!l.trim()||l.trim().startsWith('#'))continue;
+    const m=l.match(/^([A-Za-z0-9_-]+):\s*(.*)$/);
+    if(!m) throw new Error('YAML không hợp lệ: dòng "'+l.trim()+'"');
+    let v=m[2].trim();
+    if((v.startsWith('[')&&!v.endsWith(']'))||(v.startsWith('{')&&!v.endsWith('}'))||(v.startsWith('"')&&(v.length<2||!v.endsWith('"'))))
+      throw new Error('YAML không hợp lệ: giá trị "'+v+'" chưa đóng');
+    if(v.startsWith('[')||v.startsWith('{')) v=[v];
+    else if(v.length>1&&((v.startsWith('"')&&v.endsWith('"'))||(v.startsWith("'")&&v.endsWith("'")))) v=v.slice(1,-1);
+    else if(v==='') v=null;
+    o[m[1]]=v;any=true;
+  }
+  if(!any) throw new Error('frontmatter phải là YAML mapping');
+  return o;
+}
+function parseFM(text){
+  const lines=text.replace(/^\uFEFF/,'').split(/\r?\n/);
+  if(!lines.length||lines[0].trim()!=='---') throw new Error('thiếu frontmatter mở đầu bằng ---');
+  for(let i=1;i<lines.length;i++) if(lines[i].trim()==='---') return miniYaml(lines.slice(1,i));
+  throw new Error('thiếu dòng --- đóng frontmatter');
+}
+function scanSkills(folders){
+  const skills=[],diags=[],seen={};
+  [...folders].filter(f=>f.text!==null).sort((a,b)=>a.dir<b.dir?-1:a.dir>b.dir?1:0).forEach(f=>{
+    const loc='skills/'+f.dir+'/SKILL.md';
+    let meta;
+    try{meta=parseFM(f.text)}catch(e){diags.push({c:'e',t:'Bỏ qua '+loc+': '+e.message});return}
+    let name=meta.name,desc=meta.description;
+    if(typeof name!=='string'||!name.trim()){diags.push({c:'e',t:'Bỏ qua '+loc+': thiếu name'});return}
+    if(typeof desc!=='string'||!desc.trim()){diags.push({c:'e',t:'Bỏ qua '+loc+': thiếu description'});return}
+    name=name.trim();desc=desc.split(/\s+/).filter(Boolean).join(' ');
+    if(name in seen){diags.push({c:'e',t:"Lỗi: trùng skill name '"+name+"' ở "+loc+'; giữ '+seen[name]+', bỏ qua bản sau.'});return}
+    if(name!==f.dir) diags.push({c:'w',t:'Cảnh báo '+loc+": name '"+name+"' khác tên thư mục '"+f.dir+"'."});
+    if(name.length>64) diags.push({c:'w',t:'Cảnh báo '+loc+': name dài hơn 64 ký tự.'});
+    if(desc.length>1024) diags.push({c:'w',t:'Cảnh báo '+loc+': description dài hơn 1024 ký tự.'});
+    seen[name]=loc;skills.push({name,description:desc,location:loc});
+  });
+  return {skills,diags};
+}
+const SAMPLE_SKILL='---\nname: new-skill\ndescription: Mô tả khi nào dùng skill này.\n---\n\n# New skill\n';
+const CATSETS=[
+ {id:'fx',label:'Fixture của stage',real:1,f:()=>[{dir:'csv-quality',text:F['skills/csv-quality/SKILL.md']},{dir:'weekly-report',text:F['skills/weekly-report/SKILL.md']}]},
+ {id:'yaml',label:'YAML sai và thiếu metadata',f:()=>[{dir:'bad-yaml',text:'---\nname: [bad\ndescription: x\n---\n'},{dir:'good',text:'---\nname: good\ndescription: Một skill tốt\n---\nbody\n'},{dir:'no-desc',text:'---\nname: no-desc\n---\nbody\n'},{dir:'no-frontmatter',text:'# chỉ có body\n'}]},
+ {id:'dup',label:'Trùng name',f:()=>[{dir:'a-report',text:'---\nname: report\ndescription: Bản A\n---\n'},{dir:'b-report',text:'---\nname: report\ndescription: Bản B\n---\n'}]},
+ {id:'name',label:'Name khác tên thư mục',f:()=>[{dir:'report-v2',text:'---\nname: report\ndescription: Báo cáo\n---\n'}]},
+ {id:'noskill',label:'Thư mục chỉ có script',f:()=>[{dir:'tool-only',text:null},{dir:'csv-quality',text:F['skills/csv-quality/SKILL.md']}]},
+ {id:'empty',label:'Không có skill',f:()=>[]},
+];
+let catSet=0,catFolders=CATSETS[0].f(),catSel=0;
+function renderCat(){
+  $('#catPresets').innerHTML=CATSETS.map((s,i)=>`<button class="${i===catSet?'sel':''}" data-i="${i}">${s.label} ${s.real?'<span class="tag real">thật</span>':'<span class="tag sim">minh hoạ</span>'}</button>`).join('');
+  $$('#catPresets button').forEach(b=>b.onclick=()=>{catSet=+b.dataset.i;catFolders=CATSETS[catSet].f();catSel=0;renderCat()});
+  if(catSel>=catFolders.length) catSel=Math.max(0,catFolders.length-1);
+  $('#catTabs').innerHTML=catFolders.length?catFolders.map((f,i)=>`<button class="${i===catSel?'sel':''}" data-i="${i}">${esc(f.dir)}/</button>`).join(''):'<span class="invisible-hint">Thư mục skills/ đang rỗng.</span>';
+  $$('#catTabs button').forEach(b=>b.onclick=()=>{catSel=+b.dataset.i;renderCat()});
+  const f=catFolders[catSel];
+  if(!f) $('#catEditor').innerHTML='';
+  else if(f.text===null) $('#catEditor').innerHTML=`<div class="note">Thư mục <code>${esc(f.dir)}/</code> không có SKILL.md (ví dụ chỉ có <code>scripts/</code>). Hàm quét chỉ tìm <code>*/SKILL.md</code> nên thư mục này bị bỏ qua mà không có diagnostic.</div><button id="catMk">Thêm SKILL.md mẫu</button>`;
+  else $('#catEditor').innerHTML=`<div class="invisible-hint"><code>skills/${esc(f.dir)}/SKILL.md</code>, sửa trực tiếp trong ô bên dưới.</div><textarea id="catText" spellcheck="false">${esc(f.text)}</textarea>`;
+  if($('#catMk')) $('#catMk').onclick=()=>{f.text=SAMPLE_SKILL.replace('new-skill',f.dir);renderCat()};
+  if($('#catText')) $('#catText').oninput=e=>{f.text=e.target.value;renderCatOut()};
+  renderCatOut();
+}
+function renderCatOut(){
+  const r=scanSkills(catFolders);
+  $('#catDiag').innerHTML=(r.skills.length?`<div class="diag ok"><b>${r.skills.length} skill vào catalog:</b> ${r.skills.map(s=>'<code>'+esc(s.name)+'</code>').join(', ')}</div>`:'<div class="diag">Catalog rỗng: system prompt không có khối SKILLS.</div>')+r.diags.map(d=>`<div class="diag ${d.c==='e'?'e':''}">${esc(d.t)}</div>`).join('');
+  const blk=catalogBlock(r.skills);
+  $('#catBlock').textContent=blk||'(rỗng: render_catalog trả về chuỗi rỗng)';
+  const parts=sysParts(r.skills), tot=sysText(parts).length;
+  $('#catNums').textContent=`khối catalog = ${blk.length} ký tự; system prompt = ${tot} ký tự`+(parts.length===2?' (chỉ BASE và CAPABILITY)':' (BASE, CAPABILITY, SKILLS, catalog)');
+}
+$('#catAdd').onclick=()=>{let n=1;while(catFolders.some(f=>f.dir==='new-skill'+(n>1?'-'+n:'')))n++;const dir='new-skill'+(n>1?'-'+n:'');catFolders.push({dir,text:SAMPLE_SKILL.replace('new-skill',dir)});catSel=catFolders.length-1;renderCat()};
+$('#catDel').onclick=()=>{if(catFolders.length){catFolders.splice(catSel,1);renderCat()}};
+renderCat();
+
+/* ---------- 4. simulator ---------- */
+const CMD_OK='python skills/csv-quality/scripts/check_csv.py --input data/tasks.csv';
+const CMD_ERR='python skills/csv-quality/scripts/check_csv.py --input data/khong-co.csv';
+const SKP='skills/csv-quality/SKILL.md', TPP='skills/csv-quality/references/report-template.md', OUTP='output/csv-quality.md';
+const REPORT=`# Báo cáo chất lượng dữ liệu: \`data/tasks.csv\`
+
+Công cụ: \`skills/csv-quality/scripts/check_csv.py\` | exit code: 0
+
+## Tổng quan
+| Chỉ số | Giá trị |
+|---|---|
+| Số dòng dữ liệu (không tính header) | 6 |
+| Dòng thiếu owner | 1 |
+| Dòng hours không hợp lệ | 1 |
+| Số task_id bị lặp (distinct) | 1 (T02) |
+
+## Chi tiết lỗi
+| Line | Cột | Loại | task_id | Mô tả |
+|---|---|---|---|---|
+| 4 | owner | missing_owner | T03 | owner trống. |
+| 5 | hours | invalid_hours | T04 | hours 'abc' không phải số hữu hạn không âm. |
+| 6 | task_id | duplicate_id | T02 | task_id T02 đã xuất hiện ở line 3. |
+
+## Đánh giá
+- Chưa dùng được để tính tổng giờ/KPI vì còn 3 lỗi dữ liệu.
+
+## Khuyến nghị
+- Bổ sung owner cho T03 (line 4).
+- Sửa hours của T04 (line 5) thành số hợp lệ.
+- Xoá hoặc đổi task_id của dòng lặp T02 (line 6). Không sửa file CSV nguồn.
+`;
+const RBYTES=bytes(REPORT);
+const WRITE_RES=`{"ok": true, "path": "${OUTP}", "bytes": ${RBYTES}, "status": "created"}`;
+const U1='Kiểm tra chất lượng data/tasks.csv và ghi báo cáo vào output/csv-quality.md.';
+const U2='Kiểm tra chất lượng data/khong-co.csv.';
+const U3='Dòng nào thiếu owner?';
+const ANS1='Tôi đã chạy script kiểm tra data/tasks.csv và ghi báo cáo vào output/csv-quality.md. Kết quả: 6 dòng dữ liệu, 1 dòng thiếu owner (line 4, T03), 1 dòng hours sai (line 5, T04), T02 bị lặp ở line 6. Bạn hãy sửa các dòng này trước khi tính tổng giờ.';
+const ANS2='Tôi không phân tích được data/khong-co.csv. Script báo lỗi thực thi: "Không đọc được file data/khong-co.csv: No such file or directory". Bạn hãy kiểm tra lại đường dẫn. Tôi không ghi báo cáo vì chưa có thống kê nào.';
+const ANS3='Dòng 4 của data/tasks.csv thiếu owner (task_id T03). Thông tin này lấy từ kết quả script ở lượt trước. Bạn hãy bổ sung owner cho T03.';
+
+const userMsg=t=>({role:'user',label:'user',text:t,chars:t.length});
+const aiCall=(id,name,args)=>({role:'assistant',label:'assistant (tool call)',text:'',calls:[{id,name,args}],chars:pyDumps(args).length});
+const aiFinal=t=>({role:'assistant',label:'assistant',text:t,calls:[],chars:t.length});
+const toolMsg=(id,name,content)=>({role:'tool',label:'tool: '+name,text:content,tcid:id,name,chars:content.length});
+const round=(ph,id,name,args,content,n,file)=>[
+ {t:'model_request',ph,n:n[0]},
+ {t:'model_response',ph,add:aiCall(id,name,args),n:n[1]},
+ {t:'tool_started',ph,id,n:n[2]},
+ {t:'tool_finished',ph,id,add:toolMsg(id,name,content),file,n:n[3]}];
+const SC=[
+ {id:'ok',label:'Kiểm tra data/tasks.csv',user:U1,
+  note:'Prompt thử số 1 trong README. Chuỗi tool call theo kỳ vọng của README: đọc SKILL.md, chạy script, đọc template, ghi báo cáo. Thư mục <code>traces/</code> chưa có trace thật nên các lời gọi của model là minh hoạ. Kết quả của <code>read_file</code> và <code>bash</code> là dữ liệu thật: nội dung file thật và đầu ra thật của <code>check_csv.py</code>.',
+  phases:[['Gửi yêu cầu','Observer bắt đầu lượt'],['Nạp SKILL.md','read_file skills/csv-quality/SKILL.md'],['Chạy script','bash chạy check_csv.py'],['Đọc template','read_file references/report-template.md'],['Ghi báo cáo','write_file output/csv-quality.md'],['Trả lời','Model viết câu trả lời cuối']],
+  steps:[
+   {t:'user_submitted',ph:0,add:userMsg(U1),n:'Người dùng gửi prompt. Observer tăng số lượt chat, ghi event đầu tiên và liệt kê tools (3) cùng skills (2) đang được cấp.'},
+   ...round(1,'call_1','read_file',{path:SKP},T.read_skill_csv,[
+     'Snapshot đầu tiên của lượt: system prompt có catalog nhưng chưa có nội dung SKILL.md. Request chỉ có 1 message của user.',
+     'Task khớp description của skill csv-quality trong catalog, nên model yêu cầu đọc SKILL.md tại đúng <location> (hướng dẫn trong SKILLS_PROMPT).',
+     'Tool bắt đầu chạy. Status của panel chuyển sang "Đang chạy tool". Số tool call tăng lên 1.',
+     'read_file trả về JSON có <code>ok=true</code> và toàn bộ nội dung SKILL.md. Từ giờ nội dung này nằm trong history (xem "Skill content đã vào history").']),
+   ...round(2,'call_2','bash',{command:CMD_OK},T.bash_ok,[
+     'Request thứ hai gửi lại cả history, lần này đã có tool result chứa SKILL.md.',
+     'Theo mục "Chạy script" của SKILL.md, model gọi <code>bash</code> với đúng lệnh trong skill. Model không đọc source script.',
+     'Tiến trình <code>bash -c</code> bắt đầu với cwd là workspace, môi trường tối thiểu và timeout 10 giây.',
+     'Script thoát với <code>exit_code=0</code> và in JSON thống kê ra stdout. Dữ liệu có lỗi chất lượng (3 issue) vẫn là exit 0. Model đọc JSON này, không tự đếm.']),
+   ...round(3,'call_3','read_file',{path:TPP},T.read_tpl_csv,[
+     'Request thứ ba mang theo SKILL.md và JSON của script trong history.',
+     'SKILL.md bảo đọc template trước khi viết báo cáo, nên model gọi <code>read_file</code> trên đường dẫn resolve từ thư mục skill.',
+     'Tool bắt đầu chạy.',
+     'Template vào history và được ghi nhận ở "Tài nguyên đã đọc". Script chạy bằng bash thì không nằm trong danh sách này.']),
+   ...round(4,'call_4','write_file',{path:OUTP,content:REPORT},WRITE_RES,[
+     'Request thứ tư. Model đã có đủ số liệu và template.',
+     'Model gọi <code>write_file</code> với đường dẫn dưới <code>output/</code> và nội dung báo cáo (nội dung báo cáo là minh hoạ).',
+     'Tool bắt đầu chạy. <code>_write()</code> kiểm tra đường dẫn nằm dưới <code>output/</code>.',
+     'File được tạo (<code>status="created"</code>). Số byte trong kết quả tính từ báo cáo minh hoạ. CSV gốc không bị sửa.'],{path:OUTP,text:REPORT}),
+   {t:'model_request',ph:5,n:'Request thứ năm, history gồm 9 message. Model chưa gọi tool nữa.'},
+   {t:'model_response',ph:5,add:aiFinal(ANS1),n:'Model không yêu cầu tool nào, vòng lặp dừng. Câu trả lời cuối là minh hoạ. Tổng lượt này: 5 model call, 4 tool call.'},
+   {t:'run_completed',ph:5,n:'Lượt kết thúc. Trace ghi độ dài câu trả lời, không ghi nội dung.'},
+  ]},
+ {id:'err',label:'File không tồn tại',user:U2,
+  note:'Prompt thử số 2 trong README. Script thoát với exit 1 và in lỗi ra stderr. README yêu cầu agent báo lỗi thực thi và không bịa thống kê. Lời gọi của model là minh hoạ. Kết quả của <code>bash</code> là đầu ra thật của script khi chạy với file không có.',
+  phases:[['Gửi yêu cầu','Observer bắt đầu lượt'],['Nạp SKILL.md','read_file skills/csv-quality/SKILL.md'],['Chạy script','bash, exit_code 1'],['Trả lời','Báo lỗi, không bịa số liệu']],
+  steps:[
+   {t:'user_submitted',ph:0,add:userMsg(U2),n:'Người dùng gửi prompt với file CSV không tồn tại.'},
+   ...round(1,'call_1','read_file',{path:SKP},T.read_skill_csv,[
+     'Snapshot đầu tiên, chưa có nội dung skill.','Task khớp description của csv-quality nên model đọc SKILL.md.','Tool bắt đầu chạy.','SKILL.md vào history.']),
+   ...round(2,'call_2','bash',{command:CMD_ERR},T.bash_err,[
+     'Request thứ hai, history có SKILL.md.',
+     'Model chạy cùng lệnh với đường dẫn mà người dùng đưa ra.',
+     'Tiến trình bắt đầu.',
+     'Script thoát với <code>exit_code=1</code>, stdout rỗng, lỗi nằm trong stderr. Với tool, đây vẫn là một kết quả đọc được (<code>ok=true</code>, status <code>success</code>). SKILL.md dặn: exit 1 là lỗi thực thi, báo cho người dùng và không ghi báo cáo.']),
+   {t:'model_request',ph:3,n:'Request thứ ba, history có SKILL.md và kết quả lỗi của script.'},
+   {t:'model_response',ph:3,add:aiFinal(ANS2),n:'Model báo lỗi thực thi, không có số liệu nào và không gọi <code>write_file</code>. Tổng lượt: 3 model call, 2 tool call. Câu trả lời là minh hoạ.'},
+   {t:'run_completed',ph:3,n:'Lượt kết thúc. Thư mục output/ không có file mới.'},
+  ]},
+ {id:'follow',label:'Hỏi tiếp ở lượt 2',user:U3,after:0,
+  note:'Prompt thử số 3 trong README, chạy ngay sau lượt 1 của prompt đầu tiên trong cùng một cuộc trò chuyện. History của lượt 1 (10 message) được gửi lại, nên model trả lời được mà không cần gọi tool. Câu trả lời là minh hoạ.',
+  phases:[['Gửi yêu cầu','Lượt 2, history đã có 10 message'],['Trả lời','Dùng lại kết quả script trong history']],
+  steps:[
+   {t:'user_submitted',ph:0,add:userMsg(U3),n:'Observer bắt đầu lượt 2. Số lượt tăng, các counter của lượt reset về 0 nhưng history, snapshots và event log của cuộc trò chuyện được giữ.'},
+   {t:'model_request',ph:1,n:'Snapshot gồm 11 message: 10 message của lượt 1 và câu hỏi mới. Nội dung SKILL.md và JSON của script nằm trong đó.'},
+   {t:'model_response',ph:1,add:aiFinal(ANS3),n:'Model tìm dòng thiếu owner trong JSON của script (đang nằm trong history). Không cần gọi tool. Tổng lượt 2: 1 model call, 0 tool call.'},
+   {t:'run_completed',ph:1,n:'Lượt 2 kết thúc.'},
+  ]},
+];
+const clone=o=>structuredClone(o);
+const freshState=()=>({events:[],msgs:[],snaps:[],files:{},turn:0});
+function toolOf(st,id){for(let i=st.msgs.length-1;i>=0;i--){const m=st.msgs[i];if(m.calls)for(const c of m.calls)if(c.id===id)return c}return null}
+function replay(si,k){
+  const sc=SC[si];
+  const st=sc.after!=null?clone(replay(sc.after,SC[sc.after].steps.length)):freshState();
+  st.turn+=1;st.modelCalls=0;st.seq=0;st.toolCalls=0;st.status='Sẵn sàng';st.running=null;st.lastPh=-1;st.turnEvents=[];
+  for(let i=0;i<k;i++){
+    const s=sc.steps[i];st.seq++;st.lastPh=s.ph;
+    const ev={project_name:'stage-04-script-skill',chat_turn:st.turn,sequence:st.seq,type:s.t};
+    if(s.t==='user_submitted'){st.msgs.push(s.add);ev.text=s.add.text;ev.tools=DATA.tools.map(t=>t.name);ev.skills=DATA.skills}
+    else if(s.t==='model_request'){
+      st.modelCalls++;st.status='Đang gọi model';
+      const snap={turn:st.turn,call:st.modelCalls,seq:st.seq,msgs:st.msgs.slice(),sys:SYSTEM.length,mc:sum(st.msgs.map(m=>m.chars))};
+      st.snaps.push(snap);ev.model_call_index=st.modelCalls;
+      ev.snapshot={model_name:'<MODEL_NAME trong .env>',system_prompt:`(${SYSTEM.length} ký tự)`,messages:`[${snap.msgs.length} message]`,tools:'[3 tool schema]',message_count:snap.msgs.length,system_prompt_chars:SYSTEM.length,message_chars:snap.mc,usage:null};
+    } else if(s.t==='model_response'){
+      st.msgs.push(s.add);ev.model_call_index=st.modelCalls;ev.elapsed_ms='<đo khi chạy>';
+      ev.tool_calls_requested=(s.add.calls||[]).map(c=>({id:c.id,name:c.name}));ev.usage='<provider trả về nếu có>';
+    } else if(s.t==='tool_started'){
+      st.toolCalls++;st.status='Đang chạy tool';const c=toolOf(st,s.id);st.running=c.name;
+      ev.tool_call_id=s.id;ev.tool_name=c.name;ev.arguments=c.args;
+    } else if(s.t==='tool_finished'){
+      st.msgs.push(s.add);st.running=null;const c=toolOf(st,s.id);
+      if(s.file)st.files[s.file.path]=s.file.text;
+      ev.tool_call_id=s.id;ev.tool_name=c.name;ev.elapsed_ms='<đo khi chạy>';ev.status='success';ev.result=JSON.parse(s.add.text);
+    } else if(s.t==='run_completed'){
+      st.status='Hoàn tất';st.running=null;const last=st.msgs[st.msgs.length-1];ev.answer_chars=last.chars;
+    }
+    ev.n=s.n;st.events.push(ev);st.turnEvents.push(ev);
+  }
+  return st;
+}
+function inventory(st){
+  const sk=[],rs=[];
+  st.msgs.forEach((m,i)=>{
+    if(m.role!=='tool'||m.name!=='read_file')return;
+    let r;try{r=JSON.parse(m.text)}catch(e){return}
+    if(!r||r.ok!==true||!r.content)return;
+    const it={path:r.path,idx:i,tcid:m.tcid};
+    const mm=r.path.match(/^skills\/([^/]+)\/SKILL\.md$/);
+    if(mm){it.skill=mm[1];it.chars=r.content.length;const sn=st.snaps.find(s=>s.msgs.some(x=>x.role==='tool'&&x.tcid===m.tcid));it.first=sn?`Lượt ${sn.turn}, model call #${sn.call}`:null;sk.push(it)}
+    else rs.push(it);
+  });
+  return {sk,rs};
+}
+let sc=0,step=0,timer=null;
+const STATUS_CLS={'Sẵn sàng':'ready','Đang gọi model':'model','Đang chạy tool':'tool','Hoàn tất':'done','Lỗi':'err'};
+function evDesc(e){
+  switch(e.type){
+    case 'user_submitted':return `text="${short(e.text,40)}", tools=[${e.tools.length}], skills=[${e.skills.length}]`;
+    case 'model_request':return `model_call_index=${e.model_call_index}, messages=${e.snapshot.message_count}, tools=3`;
+    case 'model_response':return 'tool_calls_requested=['+e.tool_calls_requested.map(c=>c.name).join(', ')+']';
+    case 'tool_started':return `${e.tool_name}, tool_call_id=${e.tool_call_id}`;
+    case 'tool_finished':return `${e.tool_name}, status=${e.status}`;
+    case 'run_completed':return `answer_chars=${e.answer_chars}`;
+  }
+}
+function stepsHtml(st){
+  const evs=st.turnEvents;let h='';
+  const done={};evs.forEach(e=>{if(e.type==='tool_finished')done[e.tool_call_id]=e});
+  evs.forEach(e=>{
+    if(e.type==='model_request') h+=`<div class="stepbox"><div class="h">Model call #${e.model_call_index} <span class="pill gray">${e.snapshot.message_count} message gửi đi</span></div></div>`;
+    else if(e.type==='tool_started'){
+      const d=done[e.tool_call_id],r=d&&d.result;
+      let badge='<span class="pill warn">đang chạy</span>',res='';
+      if(d){
+        const bad=(r.ok===false)||(r.exit_code!=null&&r.exit_code!==0);
+        badge=r.ok===false?'<span class="pill err">lỗi</span>':(bad?'<span class="pill warn">exit '+r.exit_code+'</span>':'<span class="pill">ok</span>');
+        res=resultHtml(e.tool_name,r);
+      }
+      const args=e.tool_name==='bash'?`<pre>${esc(e.arguments.command)}</pre>`:`<pre>${esc(JSON.stringify(e.arguments.path!==undefined&&e.arguments.content!==undefined?{path:e.arguments.path,content:short(e.arguments.content,60)+' ('+e.arguments.content.length+' ký tự)'}:e.arguments))}</pre>`;
+      h+=`<div class="stepbox"><div class="h"><code>${e.tool_name}</code>${badge}</div>${args}${res}</div>`;
+    }
+  });
+  return h||'Chưa có bước nào.';
+}
+function resultHtml(name,r){
+  if(name==='read_file'&&r.ok) return `<details><summary>Result: ok, ${r.path}, ${r.content.length} ký tự</summary><pre>${esc(r.content)}</pre></details>`;
+  if(name==='bash'){
+    return `<div class="invisible-hint">exit_code=${r.exit_code}, timed_out=${r.timed_out}, truncated=${r.truncated}</div>`+(r.stdout?`<details><summary>stdout (${r.stdout.length} ký tự)</summary><pre>${esc(r.stdout)}</pre></details>`:'<div class="invisible-hint">stdout rỗng</div>')+(r.stderr?`<div>stderr</div><pre>${esc(r.stderr)}</pre>`:'');
+  }
+  return `<pre>${esc(JSON.stringify(r))}</pre>`;
+}
+function renderSim(){
+  const S=SC[sc],k=step,st=replay(sc,k),N=S.steps.length;
+  $('#presets').innerHTML=SC.map((x,i)=>`<button class="${i===sc?'sel':''}" data-i="${i}">${esc(x.label)} ${SIM}</button>`).join('');
+  $$('#presets button').forEach(b=>b.onclick=()=>{sc=+b.dataset.i;step=0;stop();renderSim()});
+  $('#simNote').innerHTML=S.note;
+  // phases
+  const phs=S.phases.map((p,i)=>{
+    const idx=S.steps.map((s,j)=>s.ph===i?j:-1).filter(j=>j>=0);
+    return {t:p[0],d:p[1],first:idx[0],last:idx[idx.length-1]};
+  });
+  const nextPh=k<N?S.steps[k].ph:phs.length;
+  $('#timeline').innerHTML=phs.map((p,i)=>`<div class="tl ${k>p.last?'done':''} ${k<N&&i===nextPh?'cur':''}" data-i="${i}"><b>${i+1}. ${p.t}</b>${p.d}</div>`).join('');
+  $$('#timeline .tl').forEach(el=>el.onclick=()=>{step=phs[+el.dataset.i].last+1;stop();renderSim()});
+  $('#stepNote').innerHTML=k===0?'Bấm "Bước tiếp" để chạy event đầu tiên.':`<b>Event #${st.seq} ${S.steps[k-1].t}:</b> ${S.steps[k-1].n}`;
+  // chat
+  let chat='';
+  if(S.after!=null) chat+=`<div class="invisible-hint">Lượt 1 đã chạy trước đó (${SC[0].user})</div>`;
+  if(k>=1) chat+=`<div class="msg u">${esc(S.user)}</div>`;
+  if(k>=1&&k<N) chat+=`<div class="msg a pending">${st.status==='Đang chạy tool'?'Đang chạy '+st.running+'…':'Đang xử lý…'}</div>`;
+  if(k>=N){const fin=st.msgs[st.msgs.length-1];chat+=`<div class="msg a">${esc(fin.text)}</div>`}
+  $('#simChat').innerHTML=chat||'<span class="invisible-hint">Chưa có tin nhắn.</span>';
+  $('#sumModel').textContent=st.modelCalls;$('#sumTool').textContent=st.toolCalls;
+  $('#simSteps').innerHTML=stepsHtml(st);
+  // state
+  const b=$('#simBadge');b.textContent=st.status;b.className='badge '+STATUS_CLS[st.status];
+  const set=(id,label,v,hl,zero)=>{const e=$(id);e.innerHTML=`${label}<b>${v}</b>`;e.classList.toggle('hl',!!hl);e.classList.toggle('zero',!!zero)};
+  const turnShown=k>0?st.turn:(S.after!=null?1:0);
+  set('#cTurn','Lượt chat',turnShown,k===1);set('#cModel','Model call',st.modelCalls,st.status==='Đang gọi model');set('#cSeq','Bước sự kiện',st.seq,k>0);set('#cTool','Tool calls',st.toolCalls,st.status==='Đang chạy tool');
+  $('#simTools').innerHTML=DATA.tools.map(t=>`<div><b>${t.name}</b>(${t.params.map(p=>p[0]+': '+p[1]).join(', ')})<div class="invisible-hint">${esc(short(t.doc.split('\n')[0],110))}</div></div>`).join('');
+  const inv=inventory(st);
+  $('#simSkills').innerHTML=DATA.skills.map(s=>{
+    const loaded=inv.sk.some(x=>x.skill===s.name);
+    return `<div style="margin:.3rem 0"><b>${s.name}</b> <code>${s.location}</code> ${loaded?'<span class="pill">đã vào history</span>':'<span class="pill gray">mới là metadata</span>'}<div class="invisible-hint">${esc(short(s.description,120))}</div></div>`}).join('')+'<div class="invisible-hint">Có trong catalog chưa có nghĩa là đã load.</div>';
+  $('#invSkN').textContent=inv.sk.length;$('#invRsN').textContent=inv.rs.length;
+  $('#simInvSk').innerHTML=inv.sk.length?inv.sk.map(x=>`<div><b>${x.skill}</b> | <code>${x.path}</code> | message #${x.idx} | tool_call_id <code>${x.tcid}</code> | ${x.chars} ký tự | request đầu tiên chứa nội dung: ${x.first||'chưa gửi model'}</div>`).join(''):'<span class="invisible-hint">Chưa có skill nào được đọc trong cuộc trò chuyện này.</span>';
+  $('#simInvRs').innerHTML=inv.rs.length?inv.rs.map(x=>`<div><code>${x.path}</code> | message #${x.idx} | tool_call_id <code>${x.tcid}</code></div>`).join('')+'<div class="invisible-hint">Chạy script bằng bash không tính là đã đọc source.</div>':'<span class="invisible-hint">Chưa đọc tài nguyên nào. Chạy script bằng bash không tính là đã đọc source.</span>';
+  $('#msgN').textContent=st.msgs.length;
+  $('#simMsgs').innerHTML=st.msgs.length?`<table><tr><th>#</th><th>role</th><th>nội dung</th></tr>`+st.msgs.map((m,i)=>`<tr><td>${i}</td><td>${m.label}</td><td>${esc(short(m.calls&&m.calls.length?m.calls[0].name+'('+JSON.stringify(m.calls[0].args):m.text,80))}</td></tr>`).join('')+'</table>':'<span class="invisible-hint">Chưa có message.</span>';
+  $('#logN').textContent=st.events.length;
+  $('#simLog').innerHTML=st.events.length?st.events.map((e,i)=>`<div class="ev ${i===st.events.length-1?'new':''}"><span class="s">L${e.chat_turn} #${e.sequence}</span><b>${e.type}</b><span>${esc(evDesc(e))}</span></div>`).join(''):'<span class="invisible-hint">Chưa có event.</span>';
+  const sn=st.snaps[st.snaps.length-1];
+  $('#simSnap').innerHTML=sn?`<div>Lượt ${sn.turn}, model call #${sn.call} | ${sn.msgs.length} message | 3 tools | ${sn.sys+sn.mc} ký tự (system ${sn.sys}, message ${sn.mc}) | chưa có usage</div><div class="invisible-hint">Xem chi tiết ở phần 6.</div>`:'<span class="invisible-hint">Chưa có event model_request. Trước lúc đó, panel hiện "Context cấu hình (chưa gửi)".</span>';
+  const files=Object.keys(st.files);
+  $('#simFiles').innerHTML=files.length?files.map(f=>`<div><code>${f}</code> | ${bytes(st.files[f])} byte ${SIM}</div>`).join(''):'<span class="invisible-hint">Chưa có file nào.</span>';
+  $('#bPrev').disabled=k===0;$('#bNext').disabled=k===N;
+  $('#bAuto').textContent=timer?'Dừng':'Tự chạy';
+}
+function stop(){if(timer){clearInterval(timer);timer=null}}
+$('#bNext').onclick=()=>{if(step<SC[sc].steps.length){step++;stop();renderSim()}};
+$('#bPrev').onclick=()=>{if(step>0){step--;stop();renderSim()}};
+$('#bReset').onclick=()=>{step=0;stop();renderSim()};
+$('#bAuto').onclick=()=>{
+  if(timer){stop();renderSim();return}
+  const N=()=>SC[sc].steps.length;
+  if(step>=N())step=0;
+  timer=setInterval(()=>{if(step<N()){step++;renderSim()}else{stop();renderSim()}},1100);renderSim();
+};
+renderSim();
+
+/* ---------- 5. artifacts ---------- */
+const BASH_JSON=JSON.parse(T.bash_ok);
+const ARTS=[
+ {id:'skill',t:'SKILL.md',loc:'đĩa, rồi history',who:'Người viết skill (file có sẵn). Model đọc bằng read_file.',ctx:`Có, khi <code>read_file</code> thành công: ${T.read_skill_csv.length} ký tự của tool result (${F[SKP].length} ký tự nội dung).`,view:F[SKP]},
+ {id:'stdout',t:'stdout của script',loc:'tool result trong history, trace',who:'Script <code>check_csv.py</code> in ra, tool <code>bash</code> gói vào JSON.',ctx:`Có: ${T.bash_ok.length} ký tự trong tool result của <code>bash</code>. Không có file nào được tạo trên đĩa.`,view:BASH_JSON.stdout},
+ {id:'tpl',t:'references/report-template.md',loc:'đĩa, rồi history',who:'Người viết skill. Model đọc bằng read_file trước khi viết báo cáo.',ctx:`Có, khi <code>read_file</code> thành công: ${T.read_tpl_csv.length} ký tự.`,view:F[TPP]},
+ {id:'out',t:'output/csv-quality.md',loc:'đĩa, workspace/output/',who:'Model tạo bằng write_file (nội dung báo cáo dưới đây là minh hoạ).',ctx:`Chỉ tham số của <code>write_file</code> (nội dung báo cáo) và kết quả ngắn <code>{ok, path, bytes, status}</code> nằm trong history. Nội dung file trên đĩa không tự vào context. Xem file trên UI cũng không gửi gì cho model.`,view:REPORT,sim:1},
+ {id:'trace',t:'traces/*.jsonl',loc:'đĩa, thư mục traces/',who:'<code>TraceWriter</code> ghi mỗi event một dòng.',ctx:'Không. Chỉ để người xem phân tích. Thư mục này nằm ngoài workspace nên <code>read_file</code> không đọc được.',view:'(xem phần 9)'},
+ {id:'snap',t:'Snapshot JSON và Conversation JSON',loc:'tải về từ UI',who:'Nút tải trong panel State &amp; Context (<code>observer.export()</code>).',ctx:'Không. Đây là bản sao state ở lớp LangChain để người xem lưu lại.',view:'(xem phần 6)'},
+ {id:'dbg',t:'traces/debug.log',loc:'đĩa, thư mục traces/',who:'<code>log_exception()</code> ghi stack trace khi có exception bất ngờ.',ctx:'Không.',view:'(chỉ có khi có exception)'},
+];
+let art='out';
+function renderArt(){
+  $('#artList').innerHTML=ARTS.map(a=>`<button style="display:block;width:100%;text-align:left;margin:.3rem 0" class="${a.id===art?'sel':''}" data-id="${a.id}">${a.t}</button>`).join('');
+  $$('#artList button').forEach(b=>b.onclick=()=>{art=b.dataset.id;renderArt()});
+  const a=ARTS.find(x=>x.id===art);
+  $('#artDetail').innerHTML=`<h3>${a.t} ${a.sim?SIM:REAL}</h3><p><b>Nằm ở:</b> ${a.loc}</p><p><b>Do ai tạo:</b> ${a.who}</p><p><b>Vào context của model:</b> ${a.ctx}</p><div style="max-height:18rem;overflow:auto"><pre>${esc(a.view)}</pre></div>`;
+}
+renderArt();
+let AL={exists:false,hist:0,writes:0,bytes:0};
+function aNoteSet(t,c){$('#aNote').className='note '+(c||'');$('#aNote').innerHTML=t}
+function renderAL(out){
+  const set=(id,l,v,hl)=>{$(id).innerHTML=`${l}<b>${v}</b>`;$(id).classList.toggle('hl',!!hl)};
+  set('#aFile','File trên đĩa',AL.exists?1:0);set('#aHist','Message mới trong history',AL.hist,true);set('#aBytes','Số byte của file',AL.exists?RBYTES:0);
+  $('#aOut').innerHTML=out||'';
+}
+$('#aWrite').onclick=()=>{
+  const status=AL.exists?'updated':'created';AL.exists=true;AL.hist+=2;
+  aNoteSet(`<code>write_file</code> chạy trên <code>output/csv-quality.md</code>. ${status==='created'?'Lần ghi đầu tiên':'Ghi lại lần nữa'} trả về <code>status="${status}"</code>. History tăng 2 message: lời gọi tool của assistant và tool result.`,'ok');
+  renderAL(`<pre>${esc(`{"ok": true, "path": "${OUTP}", "bytes": ${RBYTES}, "status": "${status}"}`)}</pre>`);
+};
+$('#aView').onclick=()=>{
+  if(!AL.exists){aNoteSet('Chưa có file nào trong <code>workspace/output/</code>. Khu <b>File đầu ra</b> của app hiện "Chưa có file trong workspace/output/".','bad');renderAL('');return}
+  aNoteSet(`Xem file là thao tác của UI. Số message trong history không đổi (${AL.hist} message mới tính từ đầu thử nghiệm) vì nội dung không được gửi vào context của model.`,'ok');
+  renderAL(`<div class="invisible-hint">output/csv-quality.md | ${RBYTES} byte | xem trước trên UI, không gửi vào context của model.</div><div class="prompt-view">${esc(REPORT)}</div>`);
+};
+$('#aRead').onclick=()=>{
+  AL.hist+=2;
+  if(!AL.exists){aNoteSet('<code>read_file</code> trả về lỗi <code>FILE_NOT_FOUND</code>. Lỗi cũng là một tool result, nên history vẫn tăng 2 message.','bad');renderAL(`<pre>${esc('{"ok": false, "error": {"code": "FILE_NOT_FOUND", "message": "Không tìm thấy file: output/csv-quality.md"}}')}</pre>`);return}
+  const res=JSON.stringify({ok:true,path:OUTP,content:REPORT});
+  $('#aNote').innerHTML=`Khi model đọc file bằng <code>read_file</code>, nội dung đi vào history và được gửi lại ở mọi model call sau đó. Tool result là JSON có <code>content</code>, dài ${res.length} ký tự (tính từ báo cáo minh hoạ).`;
+  renderAL(`<pre>${esc(short(res,260))}</pre>`);
+};
+$('#aReset').onclick=()=>{
+  AL.exists=false;
+  aNoteSet('<code>reset_workspace.py</code> xóa output và khôi phục dữ liệu từ <code>fixtures/</code>, giữ <code>traces/</code>. History của cuộc trò chuyện nằm trong session của Streamlit, không bị đổi bởi lệnh này (bấm <b>Cuộc trò chuyện mới</b> trong app để xóa history).','');
+  renderAL('');
+};
+renderAL('');
+
+/* ---------- 6. context ---------- */
+const CONV=replay(2,SC[2].steps.length);
+let ctxSel=0;
+function renderCtx(){
+  const sn=CONV.snaps;
+  $('#ctxPick').innerHTML=sn.map((s,i)=>`<button class="${i===ctxSel?'sel':''}" data-i="${i}">Lượt ${s.turn}, call #${s.call}</button>`).join('');
+  $$('#ctxPick button').forEach(b=>b.onclick=()=>{ctxSel=+b.dataset.i;renderCtx()});
+  const mx=Math.max(...sn.map(s=>s.sys+s.mc));
+  $('#ctxBars').innerHTML=sn.map((s,i)=>`<div class="bar ${i===ctxSel?'cur':''}" style="height:${Math.max(14,(s.sys+s.mc)/mx*130)}px"><span>${s.sys+s.mc}</span><em>L${s.turn} #${s.call} (${s.msgs.length} msg)</em></div>`).join('');
+  const s=sn[ctxSel],tot=s.sys+s.mc;
+  $('#ctxSummary').innerHTML=`<b>Lượt ${s.turn}, model call #${s.call}:</b> ${s.msgs.length} message | 3 tools | ${tot} ký tự (system ${s.sys}, message ${s.mc}) | chưa có usage. Chiều cao cột phía trên là tổng ký tự. Nội dung tool result lấy từ file thật và kết quả chạy thật, câu trả lời của assistant và báo cáo là minh hoạ.`;
+  const seps=2*(SYS_PARTS.length-1);
+  const cls={base:'sp',cap:'cp',skills:'sk',cat:'ct'};
+  $('#ctxStack').innerHTML=SYS_PARTS.map(p=>`<div class="${cls[p.k]}" style="width:${p.t.length/tot*100}%">${p.t.length>150?p.k.toUpperCase()+' '+p.t.length:''}</div>`).join('')+`<div style="width:${seps/tot*100}%;background:var(--bg3)"></div><div class="um" style="width:${s.mc/tot*100}%">messages ${s.mc}</div>`;
+  const hcls={base:'hl-base',cap:'hl-cap',skills:'hl-sk',cat:'hl-cat'};
+  $('#ctxPrompt').innerHTML=SYS_PARTS.map(p=>`<span class="${hcls[p.k]}">${esc(p.t)}</span>`).join('\n\n');
+  const prev=ctxSel>0?sn[ctxSel-1]:null;
+  const isSkillMsg=m=>m.role==='tool'&&m.name==='read_file'&&m.text.includes('"path": "skills/csv-quality/SKILL.md"');
+  $('#ctxMsgs').innerHTML=s.msgs.map((m,i)=>{
+    const newer=prev?(i>=prev.msgs.length):true;
+    const isSkill=isSkillMsg(m);
+    const body=m.calls&&m.calls.length?m.calls[0].name+'('+JSON.stringify(m.calls[0].args)+')':m.text;
+    return `<div class="mrow ${newer?'new':''} ${isSkill?'skill':''}"><span class="m">#${i}</span><span>${m.label}</span><span>${esc(short(body,110))}${isSkill?' <span class="pill">skill content</span>':''}</span><span class="m">${m.chars} ký tự</span></div>`}).join('')+'<div class="invisible-hint" style="margin-top:.3rem">Dòng nền vàng là message mới so với snapshot trước. Dòng nền xanh là nội dung SKILL.md đã vào history.</div>';
+  $('#ctxTools').innerHTML=DATA.tools.map(t=>`<details><summary><code>${t.name}</code>(${t.params.map(p=>p[0]).join(', ')})</summary><pre>${esc(t.doc)}</pre><div class="invisible-hint">Tham số: ${t.params.map(p=>p[0]+': '+p[1]).join(', ')}. Mô tả lấy từ docstring trong code.</div></details>`).join('');
+}
+renderCtx();
+
+/* ---------- 7. history ---------- */
+let H=[],hTurn=0,hBars=[],hGone=[],hLast='';
+const RUN_PATTERN=()=>replay(0,SC[0].steps.length).msgs;
+const ASK_PATTERN=()=>replay(2,SC[2].steps.length).msgs.slice(-2);
+function hChars(){return sum(H.map(m=>m.chars))}
+function hasSkill(){return H.filter(m=>m.role==='tool'&&m.name==='read_file'&&m.text.includes('"path": "skills/csv-quality/SKILL.md"')).length}
+function renderHist(){
+  $('#hTurn').textContent=hTurn;$('#hMsgs').textContent=H.length+1;$('#hSkill').textContent=hasSkill();$('#hChars').textContent=hChars();
+  const cls=m=>m.role==='user'?'u':m.role==='tool'?'t':'a';
+  $('#hist').innerHTML='<span class="hm s">system</span>'+H.map(m=>`<span class="hm ${cls(m)}" title="${esc(m.label)}">${m.role==='user'?'user':m.role==='tool'?'tool':'assistant'}${m.role==='tool'&&m.name==='read_file'&&m.text.includes('"path": "skills/csv-quality/SKILL.md"')?' (SKILL.md)':''}</span>`).join('')+hGone.map(()=>'<span class="hm gone">user</span>').join('');
+  const mx=Math.max(1,...hBars.map(b=>b.n));
+  $('#hbars').innerHTML=hBars.map((b,i)=>`<div class="bar ${b.fail?'fail':''}" style="height:${Math.max(14,b.n/mx*130)}px"><span>${b.n}</span><em>lượt ${i+1}${b.fail?' (lỗi)':''}</em></div>`).join('')||'<span class="invisible-hint">Biểu đồ: số message (không tính system) gửi ở mỗi lượt.</span>';
+  $('#hNote').innerHTML=hLast||'Bấm "Lượt kiểm tra CSV" để bắt đầu.';
+  $('#hNote').className='note'+(hLast.startsWith('<b>Lỗi')?' bad':'');
+}
+$('#hRun').onclick=()=>{
+  hTurn++;hGone=[];const sent=H.length+1;H.push(...RUN_PATTERN());hBars.push({n:sent});
+  hLast=`Lượt ${hTurn}: model nhận <b>${sent}</b> message ở call đầu tiên (toàn bộ history cộng tin nhắn mới). Cuối lượt history có ${H.length} message: mỗi tool call thêm 2 message (lời gọi của assistant và tool result), cộng message của user và câu trả lời cuối. Mỗi lượt bấm nút này là một lượt mới, mô phỏng lại đúng mẫu của lượt 1 để so sánh kích thước. ${SIM}`;renderHist()};
+$('#hAsk').onclick=()=>{
+  hTurn++;hGone=[];const sent=H.length+1;
+  const ask=ASK_PATTERN();H.push(...ask);hBars.push({n:sent});
+  hLast=hasSkill()?`Lượt ${hTurn}: model nhận <b>${sent}</b> message, trong đó có nội dung SKILL.md và kết quả script từ lượt trước. Không cần tool, history thêm 2 message. ${SIM}`:`Lượt ${hTurn}: model nhận <b>${sent}</b> message. Chưa có kết quả script trong history, nên trong thực tế model sẽ phải gọi tool để trả lời câu hỏi kiểu này. Câu hỏi và trả lời ở đây dùng mẫu của prompt thử số 3. ${SIM}`;
+  renderHist()};
+$('#hFail').onclick=()=>{hTurn++;const sent=H.length+1;hBars.push({n:sent,fail:true});hGone=['u'];hLast=`<b>Lỗi provider ở lượt ${hTurn}.</b> UI hiện thông báo lỗi và file trace đã ghi vẫn được giữ. Model history được rollback về trước lượt lỗi, nên message user của lượt này bị bỏ và nội dung skill đã load ở các lượt trước vẫn còn. App không tự chạy lại lượt lỗi.`;renderHist()};
+$('#hNew').onclick=()=>{H=[];hTurn=0;hBars=[];hGone=[];hLast='History, counters, snapshots và skill đã load của cuộc trò chuyện cũ bị xóa. Các file trong <code>traces/</code> và <code>workspace/output/</code> vẫn còn trên đĩa. Ở lượt kế tiếp, model phải đọc lại SKILL.md nếu cần.';renderHist()};
+renderHist();
+
+/* ---------- 8. security ---------- */
+// path tester (port of tools/files.py)
+const PFILES=Object.keys(F);
+const VIRT={'data/big.txt':{size:200001},'data/binary.bin':{bin:1}};
+let written=new Set();
+function allFiles(){return new Set([...PFILES,...Object.keys(VIRT),...written])}
+function isDir(p){if(p==='')return true;for(const f of allFiles())if(f.startsWith(p+'/'))return true;return p==='output'}
+function norm(raw){const parts=[];for(const s of raw.split('/')){if(s===''||s==='.')continue;if(s==='..'){if(!parts.length)return null;parts.pop()}else parts.push(s)}return parts.join('/')}
+function pErr(c,m){return {ok:false,error:{code:c,message:m}}}
+function resolveP(path){
+  const raw=(path||'').trim();
+  if(!raw) return {e:pErr('INVALID_PATH','Path rỗng. Dùng đường dẫn tương đối workspace, ví dụ data/weekly_notes.md.')};
+  if(raw.startsWith('/')||raw.startsWith('~')) return {e:pErr('PATH_OUTSIDE_WORKSPACE','Không chấp nhận đường dẫn tuyệt đối: '+raw+'. Dùng đường dẫn tương đối workspace.')};
+  const t=norm(raw);
+  if(t===null) return {e:pErr('PATH_OUTSIDE_WORKSPACE','Đường dẫn thoát ra ngoài workspace: '+raw)};
+  return {t};
+}
+function simRead(path){
+  const r=resolveP(path);if(r.e)return r.e;const t=r.t,rel=t===''?'.':t;
+  if(!allFiles().has(t)&&!isDir(t)) return pErr('FILE_NOT_FOUND','Không tìm thấy file: '+rel);
+  if(isDir(t)) return pErr('IS_A_DIRECTORY','Đây là thư mục, không phải file: '+rel);
+  if(VIRT[t]&&VIRT[t].size) return pErr('FILE_TOO_LARGE',`File ${rel} có ${VIRT[t].size.toLocaleString('vi-VN')} bytes, vượt giới hạn 200.000 bytes. Không đọc một phần.`);
+  if(VIRT[t]&&VIRT[t].bin) return pErr('NOT_UTF8_TEXT','File '+rel+' không phải văn bản UTF-8.');
+  const content=F[t]!==undefined?F[t]:(written.has(t)?'(nội dung đã ghi)':'');
+  return {ok:true,path:rel,content:short(content,60)+' ('+content.length+' ký tự)'};
+}
+function simWrite(path){
+  const r=resolveP(path);if(r.e)return r.e;const t=r.t;
+  if(!(t.startsWith('output/'))) return pErr('PATH_OUTSIDE_OUTPUT','Chỉ được ghi file dưới output/ (ví dụ output/summary.md). Path nhận được: '+path);
+  if(isDir(t)&&!allFiles().has(t)) return pErr('IS_A_DIRECTORY','Đây là thư mục, không ghi đè được: '+t);
+  const status=allFiles().has(t)?'updated':'created';written.add(t);
+  return {ok:true,path:t,bytes:RBYTES,status};
+}
+let pTool='read';
+const PS={read:['data/tasks.csv','skills/csv-quality/scripts/check_csv.py','../.env','/etc/passwd','~/.ssh/id_rsa','data/khong-co.csv','data','data/big.txt','data/binary.bin','data/../../secret.txt',''],
+          write:['output/csv-quality.md','output/reports/a.md','data/tasks.csv','output','output/../data/x.md','../output/x.md','/tmp/x.md','summary.md']};
+function renderPSamples(){
+  $('#pSamples').innerHTML=PS[pTool].map(s=>`<button data-s="${esc(s)}">${s===''?'(rỗng)':esc(s)}</button>`).join('');
+  $$('#pSamples button').forEach(b=>b.onclick=()=>{$('#pInput').value=b.dataset.s;runPath()});
+}
+function runPath(){
+  const p=$('#pInput').value,res=pTool==='read'?simRead(p):simWrite(p);
+  $('#pOut').textContent=JSON.stringify(res,null,2);
+  $('#pNote').className='note '+(res.ok?'ok':'bad');
+  $('#pNote').innerHTML=res.ok?`<code>${pTool}_file</code> chấp nhận đường dẫn <code>${esc(p)}</code>.`+(pTool==='write'?' Thư mục cha được tạo tự động, và code kiểm tra lại thư mục cha sau khi tạo để chặn symlink.':''):`<code>${pTool}_file</code> từ chối với mã <code>${res.error.code}</code>. Lỗi quay lại model như một tool result để model báo cho người dùng.`;
+}
+$$('#pTool button').forEach(b=>b.onclick=()=>{pTool=b.dataset.t;$$('#pTool button').forEach(x=>x.classList.toggle('sel',x===b));renderPSamples();runPath()});
+$('#pRun').onclick=runPath;$('#pInput').onkeydown=e=>{if(e.key==='Enter')runPath()};
+renderPSamples();runPath();
+// bash cases
+const BC=BASH_JSON;
+const clipTxt='x'.repeat(20000)+'\n…[đã cắt, tổng 30001 ký tự]';
+const CASES=[
+ {l:'Chạy script (exit 0)',cmd:CMD_OK,real:1,res:()=>JSON.parse(T.bash_ok),n:'Lệnh trong SKILL.md. Script in JSON thống kê, exit 0. Dữ liệu có lỗi chất lượng vẫn là exit 0.'},
+ {l:'File không có (exit 1)',cmd:CMD_ERR,real:1,res:()=>JSON.parse(T.bash_err),n:'Script thoát với exit 1 và in lỗi ra stderr. Với tool, <code>ok=true</code> vì lệnh đã chạy xong. Model phải đọc <code>exit_code</code> để biết chương trình báo lỗi.'},
+ {l:'Thiếu --input (exit 2)',cmd:'python skills/csv-quality/scripts/check_csv.py',real:1,res:()=>JSON.parse(T.bash_noarg),n:'argparse tự báo lỗi và thoát với mã 2. Cũng là kết quả đọc được, không phải timeout.'},
+ {l:'sleep 20 (timeout)',cmd:'sleep 20',res:()=>({ok:false,exit_code:null,stdout:'',stderr:'',timed_out:true,truncated:false,error:{code:'TIMEOUT',message:'Command chạy quá 10 giây, đã dừng. stdout/stderr là output một phần.'}}),n:'Sau 10 giây tool gọi <code>os.killpg(..., SIGKILL)</code> để giết cả process group (nhờ <code>start_new_session=True</code>), rồi trả về <code>timed_out=true</code>.',sim:1},
+ {l:'Timeout giữ output một phần',cmd:'echo bắt-đầu; sleep 20; echo không-tới',res:()=>({ok:false,exit_code:null,stdout:'bắt-đầu\n',stderr:'',timed_out:true,truncated:false,error:{code:'TIMEOUT',message:'Command chạy quá 10 giây, đã dừng. stdout/stderr là output một phần.'}}),n:'Phần stdout trước khi bị dừng vẫn được trả về. Dòng sau <code>sleep</code> không bao giờ chạy (khớp <code>tests/test_bash.py</code>).',sim:1},
+ {l:'env',cmd:'env',res:()=>({ok:true,exit_code:0,stdout:'PATH=<.venv của project>/bin:/usr/local/bin:/usr/bin:/bin\nHOME=<đường dẫn workspace>\nLANG=<LANG của máy nếu là UTF-8, ngược lại C.UTF-8>\nLC_ALL=<giống LANG>\nPYTHONIOENCODING=utf-8\nPYTHONDONTWRITEBYTECODE=1\n(cùng các biến mà chính bash tự thêm, như PWD, SHLVL, _)\n',stderr:'',timed_out:false,truncated:false}),n:'<code>minimal_env()</code> chỉ truyền 6 biến. <code>OPENROUTER_API_KEY</code>, <code>OPENROUTER_BASE_URL</code> và mọi biến khác của tiến trình app đều không được truyền (khớp <code>tests/test_bash.py</code>). Việc bash tự thêm PWD, SHLVL, _ là hành vi thường gặp của bash <span class="tag sim">suy luận</span>.',sim:1},
+ {l:'cat ../.env',cmd:'cat ../.env',res:()=>({ok:true,exit_code:0,stdout:'(nội dung file .env của project, nếu file tồn tại)',stderr:'',timed_out:false,truncated:false}),n:'<b>Không bị chặn.</b> Kiểm tra đường dẫn của <code>read_file</code> không áp dụng cho bash, nên lệnh đọc được file ngoài workspace với quyền của user chạy app (README ghi rõ). Đây là lý do chỉ dùng stage này với dữ liệu giả.',bad:1,sim:1},
+ {l:'Ghi đè data/tasks.csv',cmd:'echo "task_id,owner,hours" > data/tasks.csv',res:()=>({ok:true,exit_code:0,stdout:'',stderr:'',timed_out:false,truncated:false}),n:'<b>Không bị chặn.</b> <code>write_file</code> chỉ ghi dưới <code>output/</code>, nhưng <code>bash</code> ghi được mọi nơi user có quyền. CSV gốc chỉ an toàn khi model làm theo SKILL.md ("Không sửa file CSV khi người dùng chỉ yêu cầu kiểm tra") hoặc khi chạy <code>reset_workspace.py</code> để khôi phục.',bad:1,sim:1},
+ {l:'In 30000 ký tự',cmd:'python -c "print(\'x\'*30000)"',res:()=>({ok:true,exit_code:0,stdout:clipTxt,stderr:'',timed_out:false,truncated:true}),n:'stdout dài 30001 ký tự (cả ký tự xuống dòng) bị cắt còn 20000 ký tự cộng một dòng thông báo, và <code>truncated=true</code>. Ở đây rút gọn phần x để hiển thị.',sim:1},
+ {l:'Lệnh rỗng',cmd:'',res:()=>({ok:false,exit_code:null,stdout:'',stderr:'',timed_out:false,error:{code:'EMPTY_COMMAND',message:'Command rỗng.'}}),n:'Lệnh chỉ có khoảng trắng bị từ chối trước khi tạo tiến trình. Kết quả này không có trường <code>truncated</code>.',sim:1},
+];
+let bSel=0;
+function renderBash(){
+  $('#bCases').innerHTML=CASES.map((c,i)=>`<button class="${i===bSel?'sel':''}" data-i="${i}">${esc(c.l)} ${c.real?'<span class="tag real">thật</span>':'<span class="tag sim">minh hoạ</span>'}</button>`).join('');
+  $$('#bCases button').forEach(b=>b.onclick=()=>{bSel=+b.dataset.i;renderBash()});
+  const c=CASES[bSel],r=c.res();
+  $('#bNote').className='note '+(c.bad?'bad':(r.ok&&r.exit_code===0?'ok':''));
+  $('#bNote').innerHTML=c.n;
+  $('#bCmd').textContent=JSON.stringify({command:c.cmd},null,2);
+  $('#bRes').textContent=JSON.stringify(r,null,2);
+}
+renderBash();
+// matrix
+const MX=[
+ {op:'Đọc data/tasks.csv',rd:['ok','chạy được'],wr:['na','không áp dụng'],ba:['ok','chạy được (cat)'],n:'Thao tác bình thường, cả hai tool đều làm được.'},
+ {op:'Đọc ../.env (ngoài workspace)',rd:['no','PATH_OUTSIDE_WORKSPACE'],wr:['na','không áp dụng'],ba:['warn','không bị chặn'],n:'<code>read_file</code> chặn bằng <code>resolve()</code> và <code>is_relative_to(root)</code>. <code>bash</code> không có kiểm tra tương đương nên <code>cat ../.env</code> chạy được.'},
+ {op:'Ghi data/tasks.csv',rd:['na','không áp dụng'],wr:['no','PATH_OUTSIDE_OUTPUT'],ba:['warn','không bị chặn'],n:'<code>write_file</code> chỉ cho ghi dưới <code>output/</code>. <code>bash</code> có thể ghi đè bằng redirect.'},
+ {op:'Ghi output/csv-quality.md',rd:['na','không áp dụng'],wr:['ok','created hoặc updated'],ba:['ok','chạy được (redirect)'],n:'Đường ghi đúng quy ước là <code>write_file</code>, vì kết quả trả về có path, bytes, status rõ ràng.'},
+ {op:'Chạy check_csv.py',rd:['no','không chạy được, chỉ đọc source'],wr:['na','không áp dụng'],ba:['ok','chạy được'],n:'Chỉ <code>bash</code> chạy được chương trình. Đây là lý do skill có script cần tool <code>bash</code>.'},
+ {op:'Đọc biến OPENROUTER_API_KEY của tiến trình app',rd:['na','không áp dụng'],wr:['na','không áp dụng'],ba:['ok','không thấy biến này'],n:'Môi trường của bash chỉ có 6 biến do <code>minimal_env()</code> tạo. Lưu ý: nếu đọc được file <code>.env</code> bằng <code>cat</code> thì vẫn thấy key, vì file nằm trên đĩa.'},
+ {op:'Chạy quá 10 giây',rd:['na','không áp dụng'],wr:['na','không áp dụng'],ba:['no','TIMEOUT, bị kill'],n:'Timeout là giới hạn duy nhất mà <code>bash</code> có trên thời gian chạy. Không có giới hạn bộ nhớ hay mạng trong code.'},
+];
+let mxSel=1;
+function renderMx(){
+  const cell=(x)=>`<td class="${x[0]==='ok'?'c-ok':x[0]==='no'?'c-no':x[0]==='warn'?'c-warn':''}">${x[1]}</td>`;
+  $('#matrix').innerHTML='<tr><th>Thao tác</th><th>read_file</th><th>write_file</th><th>bash</th></tr>'+MX.map((m,i)=>`<tr class="pick ${i===mxSel?'on':''}" data-i="${i}"><td>${m.op}</td>${cell(m.rd)}${cell(m.wr)}${cell(m.ba)}</tr>`).join('');
+  $$('#matrix tr.pick').forEach(r=>r.onclick=()=>{mxSel=+r.dataset.i;renderMx()});
+  $('#mxNote').innerHTML=MX[mxSel].n;
+}
+renderMx();
+// limits
+function renderLimits(){
+  const rounds=+$('#lRounds').value,per=+$('#lPer').value;
+  $('#lrN').textContent=rounds;$('#lpN').textContent=per;
+  const cut=rounds>=8, mc=cut?8:rounds+1, tr=Math.min(rounds,8)*per;
+  let h='';
+  for(let i=1;i<=8;i++){
+    if(i<=mc){const last=i===mc&&!cut;h+=`<div class="slot ${last?'m':(cut&&i===8?'cut':'t')}">🧠<b>model #${i}</b>${last?'trả lời':'yêu cầu tool'}</div>`}
+    else h+=`<div class="slot" style="opacity:.4"><b>#${i}</b>chưa dùng</div>`;
+  }
+  $('#slots').innerHTML=h;
+  $('#cells').innerHTML=Array.from({length:20},(_,i)=>`<div class="cell ${i<Math.min(tr,20)?'f':''}"></div>`).join('')+(tr>20?`<div style="grid-column:1/-1;color:var(--red);font-weight:700;font-size:.85rem">${tr} tool call yêu cầu, vượt 20</div>`:'');
+  let n=`<b>${mc} model call, ${tr} tool call yêu cầu.</b> `;
+  let c='ok';
+  if(cut){n+='Model call thứ 8 vẫn yêu cầu tool. Lần gọi thứ 9 không được phép: <code>exit_behavior="end"</code> kết thúc lượt. Với lượt chạy script thông thường (5 model call, 4 tool call) còn nhiều dư địa.';c='bad'}
+  else n+='Lần gọi cuối là câu trả lời, không yêu cầu tool nên vòng lặp dừng.';
+  if(tr>20){n+=' Số tool call vượt <code>TOOL_CALL_LIMIT=20</code>. Hành vi khi vượt là mặc định của <code>ToolCallLimitMiddleware</code>, code của project không chỉ rõ '+INF;c='bad'}
+  $('#lNote').className='note '+c;$('#lNote').innerHTML=n;
+}
+$('#lRounds').oninput=renderLimits;$('#lPer').oninput=renderLimits;
+$('#lScript').onclick=()=>{$('#lRounds').value=4;$('#lPer').value=1;renderLimits()};
+renderLimits();
+
+/* ---------- 9. trace ---------- */
+let trSc=0,trSel=0;
+const TRDESC={
+ user_submitted:'Observer bắt đầu lượt chat. <code>tools</code> liệt kê 3 tool, <code>skills</code> là metadata của 2 skill trong catalog (chưa phải nội dung đã load).',
+ model_request:'Snapshot được chụp ngay trước khi gọi model. <code>system_prompt_chars</code> là độ dài system prompt gồm cả catalog. <code>message_count</code> tăng sau mỗi tool round vì history được gửi lại. <code>usage</code> còn null vì model chưa trả lời. Trong file thật, snapshot chứa đầy đủ system prompt, messages và tools.',
+ model_response:'<code>tool_calls_requested</code> cho biết model muốn gọi tool nào. Mảng rỗng nghĩa là model trả lời cuối và vòng lặp dừng. Trong file thật, <code>elapsed_ms</code> là thời gian đo được và <code>usage</code> là token mà provider trả về nếu có.',
+ tool_started:'Tool bắt đầu chạy. <code>arguments</code> là tham số model gửi. Với <code>bash</code>, đây là nguyên văn lệnh.',
+ tool_finished:'Kết thúc tool, kèm <code>result</code> đã parse từ JSON. Với <code>bash</code>, <code>status</code> là <code>success</code> kể cả khi <code>exit_code</code> khác 0, vì tool đã trả về kết quả đọc được. Model cần đọc <code>exit_code</code>, <code>stdout</code>, <code>stderr</code>.',
+ run_completed:'Lượt kết thúc. Trace chỉ ghi độ dài câu trả lời cuối, không ghi nội dung. Nếu lượt lỗi, dòng này được thay bằng <code>run_failed</code>.',
+};
+function trunc(o){
+  if(typeof o==='string') return o.length>70?o.slice(0,70)+'…':o;
+  if(Array.isArray(o)) return o.map(trunc);
+  if(o&&typeof o==='object'){const r={};for(const k in o)r[k]=trunc(o[k]);return r}
+  return o;
+}
+function cleanEv(e){const x={...e};delete x.n;return x}
+function fmtJson(o){return esc(JSON.stringify(o)).replace(/"([a-z_]+)":/g,'<span class="k">"$1"</span>:').replace(/(\[\])/g,'<span class="t">$1</span>')}
+function renderTrace(){
+  $('#trPick').innerHTML=SC.slice(0,2).map((s,i)=>`<button class="${i===trSc?'sel':''}" data-i="${i}">${esc(s.label)} ${SIM}</button>`).join('');
+  $$('#trPick button').forEach(b=>b.onclick=()=>{trSc=+b.dataset.i;trSel=0;renderTrace()});
+  const st=replay(trSc,SC[trSc].steps.length);
+  $('#jls').innerHTML=st.events.map((e,j)=>`<div class="jl ${j===trSel?'on':''}" data-i="${j}">${fmtJson(trunc(cleanEv(e)))}</div>`).join('');
+  $$('#jls .jl').forEach(el=>el.onclick=()=>{trSel=+el.dataset.i;renderTrace()});
+  const e=st.events[trSel];
+  $('#jlDetail').innerHTML=`<h3>${trSel+1}. ${e.type}</h3><p>${TRDESC[e.type]}</p><p><b>Trong bước mô phỏng:</b> ${e.n}</p><details><summary>Dòng đầy đủ (JSON)</summary><pre>${esc(JSON.stringify(cleanEv(e),null,2))}</pre></details><p class="invisible-hint">Trong file thật, mỗi dòng còn có <code>conversation_id</code>, <code>run_id</code> và <code>timestamp</code>. Trang này bỏ các trường đó cho gọn. Các giá trị trong dấu &lt; &gt; là dữ liệu chỉ có lúc chạy thật.</p>`;
+}
+renderTrace();
+
+/* ---------- 10. config ---------- */
+function renderEnv(){
+  const k=$('#eKey').checked,m=$('#eModel').checked,b=$('#eBase').checked;
+  const miss=[!k&&'OPENROUTER_API_KEY',!m&&'MODEL_NAME'].filter(Boolean);
+  $('#eInput').disabled=$('#eSend').disabled=!!miss.length;
+  $('#eInput').placeholder=miss.length?'Ô chat bị khóa':'Nhập yêu cầu…';
+  $('#eNote').className='note '+(miss.length?'bad':'ok');
+  $('#eNote').innerHTML=miss.length?`<b>Thiếu ${miss.join(', ')}.</b> UI hiện cảnh báo, khóa ô chat và app không gọi model.`:'Đã đủ các biến bắt buộc, ô chat được mở.';
+  $('#ePre').textContent=miss.length?'load_settings() trả về (None, '+JSON.stringify(miss)+')\n# không tạo model, không gọi provider':
+`load_settings() trả về Settings(...)
+ChatOpenAI(
+  model=MODEL_NAME,
+  api_key=OPENROUTER_API_KEY,
+  base_url=${b?'OPENROUTER_BASE_URL':'"https://openrouter.ai/api/v1"'}
+)`;
+}
+['#eKey','#eModel','#eBase'].forEach(i=>$(i).onchange=renderEnv);renderEnv();
+
+/* nav highlight */
+const links=$$('#nav a');
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)links.forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+e.target.id))}),{rootMargin:'-30% 0px -60% 0px'});
+$$('section').forEach(s=>io.observe(s));
+</script>
+</body>
+</html>
